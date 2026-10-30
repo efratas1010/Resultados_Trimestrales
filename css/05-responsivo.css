@@ -1,0 +1,16 @@
+/* =====================================================================
+   5. RESPONSIVO
+   ===================================================================== */
+@media (max-width:1100px){.charts{grid-template-columns:1fr}}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;width:var(--sidebar);transform:translateX(-105%);transition:transform .3s var(--ease);box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:none}
+  .menu-btn{display:inline-grid}
+  .topbar{padding:12px 16px}
+  .content{padding:16px}
+  .modal .body{grid-template-columns:1fr}
+  .top-actions .btn span.lbl{display:none}
+  .reg-prog{margin-left:0}
+}
+@media (max-width:560px){.kpi .val{font-size:1.6rem}.search{min-width:0;flex:1}}

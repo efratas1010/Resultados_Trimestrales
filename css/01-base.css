@@ -1,0 +1,49 @@
+/* =====================================================================
+   1. VARIABLES DE DISEÑO (tema claro / oscuro)
+   ===================================================================== */
+:root{
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --bg:#f5f6fa; --surface:#ffffff; --surface-2:#f1f3f8; --surface-3:#e7ebf3;
+  --text:#0e1726; --text-2:#3b4659; --muted:#6b7588; --border:#e3e7ef;
+  --primary:#1d3a6e; --primary-2:#2c5aa0; --primary-soft:#e9eef8; --on-primary:#ffffff;
+  --accent:#b8892f; --accent-soft:#f8f0dc;
+  --verde:#16a34a; --amarillo:#eab308; --rojo:#dc2626; --gris:#94a3b8;
+  --verde-soft:#dcfce7; --amarillo-soft:#fef3c7; --rojo-soft:#fee2e2; --gris-soft:#eef0f4;
+  --verde-txt:#166534; --amarillo-txt:#854d0e; --rojo-txt:#991b1b;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow:0 1px 3px rgba(16,24,40,.05),0 10px 28px -14px rgba(16,24,40,.14);
+  --shadow-lg:0 24px 60px -20px rgba(16,24,40,.35);
+  --r:16px; --r-sm:10px; --ease:cubic-bezier(.2,.7,.2,1); --sidebar:276px;
+}
+[data-theme="dark"]{
+  --bg:#0a0f1d; --surface:#111a2d; --surface-2:#162139; --surface-3:#1d2a46;
+  --text:#e8edf6; --text-2:#c4ccdc; --muted:#8c98ae; --border:#24324f;
+  --primary:#8fb0ff; --primary-2:#b0c6ff; --primary-soft:#1a2a4d; --on-primary:#0a0f1d;
+  --accent:#e2b85a; --accent-soft:#3a2f17;
+  --verde-soft:#0f2e1c; --amarillo-soft:#3a3212; --rojo-soft:#3b1717; --gris-soft:#1b2540;
+  --verde-txt:#86efac; --amarillo-txt:#fde68a; --rojo-txt:#fca5a5;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.6);
+  --shadow-lg:0 24px 60px -20px rgba(0,0,0,.7);
+}
+
+/* =====================================================================
+   2. BASE
+   ===================================================================== */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+h1,h2,h3,h4{margin:0;line-height:1.2}
+h1,h2,.serif{font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--primary-2);outline-offset:2px;border-radius:6px}
+.muted{color:var(--muted)} .small{font-size:.85rem} .num{text-align:right;font-variant-numeric:tabular-nums}
+.skip{position:absolute;left:-999px;top:8px;background:var(--primary);color:var(--on-primary);padding:8px 12px;border-radius:8px;z-index:999}
+.skip:focus{left:8px}
+.ic{flex:none;vertical-align:middle}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes slideInL{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeUp .35s var(--ease) both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

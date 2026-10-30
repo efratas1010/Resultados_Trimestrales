@@ -1,0 +1,31 @@
+PLATAFORMA PORTAFOLIO ESTRATÉGICO · VERSIÓN MODULAR
+====================================================
+Abrir: doble clic en index.html (no requiere servidor). Mantener las carpetas css/ y js/ junto a index.html.
+
+ORDEN DE CARGA: los JS se cargan en el orden numérico indicado en index.html. No cambiar el orden.
+
+CSS
+ 01-base.css           Variables de color (claro/oscuro), tipografía, animaciones base
+ 02-layout.css         Barra lateral, barra superior y contenedor principal
+ 03-componentes.css    Botones, formularios, tablas, pestañas, tarjetas KPI, gráficas, modal, diapositivas
+ 04-plataforma.css     Login, pantalla de Inicio, módulos, usuarios, roles y bitácora
+ 05-responsivo.css     Ajustes para tablet y móvil
+ 06-impresion.css      Estilos del PDF / impresión
+
+JS
+ 01-config.js          ÁREAS, UMBRALES, ROLES, USUARIOS INICIALES, LISTAS y COLUMNAS DE CADA HOJA
+ 02-utilidades.js      Funciones auxiliares, formatos, íconos, toasts
+ 03-almacenamiento.js  Guardado en localStorage e indicador "Guardado"
+ 04-calculos.js        % cumplimiento, semáforo, vencidas, avance de captura
+ 05-datos-ejemplo.js   Datos de ejemplo precargados
+ 06-navegacion.js      Vistas, barra lateral, barra superior y permisos por vista
+ 07-edicion.js         Módulo Edición: tablas, formularios, validaciones, reflexión
+ 08-filtros.js         Filtros del dashboard
+ 09-dashboard.js       Dashboard: tarjetas, gráficas, vista por área, comparativa, tablas
+ 10-presentacion.js    Modo presentación (diapositivas)
+ 11-impresion.js       Reporte PDF / imprimir
+ 12-excel.js           Importar, exportar y plantilla Excel
+ 13-configuracion.js   Pantalla Administración > Configuración
+ 14-usuarios-sesion.js Login, sesión, Inicio, Administración (usuarios, roles, bitácora)
+ 15-eventos.js         Clics, cambios, teclado (acciones de todos los botones)
+ 16-inicio.js          Arranque de la aplicación (siempre al final)

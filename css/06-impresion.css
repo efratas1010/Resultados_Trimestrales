@@ -1,0 +1,25 @@
+/* =====================================================================
+   6. IMPRESIÓN / PDF
+   ===================================================================== */
+@media print{
+  :root,[data-theme="dark"]{--bg:#fff;--surface:#fff;--surface-2:#f6f3ec;--surface-3:#ece7dc;--text:#26282a;--text-2:#45484c;--muted:#767a80;--border:#e8e3d8;--primary:#c42b20;--primary-2:#ec4034;--primary-soft:#fdeceb;--on-primary:#fff;--accent:#ffd500;--accent-soft:#fff7cc;--verde:#4fb52a;--amarillo:#ffd500;--rojo:#ec4034;--verde-soft:#e6f8dd;--amarillo-soft:#fff7cc;--rojo-soft:#fdeceb;--verde-txt:#2f7a12;--amarillo-txt:#7a5c00;--rojo-txt:#a8241a;--gris-soft:#eef0f4}
+  @page{size:letter landscape;margin:12mm}
+  body{background:#fff;font-size:11px}
+  .app,.login,.modal-bg,.slides,.toasts,.skip{display:none!important}
+  #printArea{display:block}
+  .p-page{page-break-after:always;break-after:page}
+  .p-page:last-child{page-break-after:auto}
+  .sec,.okr-card,.prop,.ac-item,.kr,tr{break-inside:avoid}
+  .tbl-wrap{overflow:visible;border:1px solid #dfe3ea}
+  .tbl th{position:static}
+  .area-hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pill,.mini,.blk,.kpi,.bar>i,.heat,.tbl th,.stripe{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-head{display:flex;justify-content:space-between;border-bottom:3px solid #ec4034;padding-bottom:6px;margin-bottom:14px;font-size:10px;color:#6b7588}
+  .p-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .p-charts img{width:100%;border:1px solid #dfe3ea;border-radius:8px}
+  .kpi::after{display:none}
+  .tbl{font-size:9px}
+  .tbl th{white-space:normal}
+  .tbl td,.tbl th.static,.tbl th>.th-sort{padding:5px 6px}
+  .prog{min-width:70px}
+}

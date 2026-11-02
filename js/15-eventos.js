@@ -474,7 +474,6 @@ document.addEventListener('submit', e => {
     }
 
     const id =
-      'unidad-' +
       uid();
 
     S().unidadesNegocio.push({
@@ -551,8 +550,6 @@ document.addEventListener('submit', e => {
 
     unidad.areas.push({
       id:
-        unidad.id +
-        '-area-' +
         uid(),
 
       nombre

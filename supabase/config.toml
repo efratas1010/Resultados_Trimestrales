@@ -1,0 +1,3 @@
+[functions.usuarios-admin]
+verify_jwt = true
+# Ademas se valida el token con auth.getUser y se comprueba admin activo.

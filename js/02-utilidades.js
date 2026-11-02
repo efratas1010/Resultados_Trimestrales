@@ -4,7 +4,7 @@
    ======================================================================= */
 const $ = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const uid = () => crypto.randomUUID();
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 const nf = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2 });

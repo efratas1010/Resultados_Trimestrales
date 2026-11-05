@@ -7,7 +7,7 @@ const Cloud = {
   pending: false, saving: false, timer: null, draftCount: 0,
   specs: {
     cierre: {table:'cierre_resultados', map:{indicador:'indicador',unidad:'unidad_medida',sentido:'sentido',meta:'meta',real:'real',semaforo:'semaforo_forzado',comentarios:'comentarios'}, required:['indicador','meta','real'], nums:['meta','real']},
-    qqc: {table:'quien_que_cuando',map:{semaforo:'semaforo_origen',indicador:'indicador_problema',causa:'causa_raiz',accion:'accion',responsable:'responsable',fecha:'fecha_compromiso',estatus:'estatus',avance:'avance'},required:['semaforo','indicador','causa','accion','responsable','fecha','estatus'],nums:['avance']},
+    qqc: {table:'quien_que_cuando',map:{cierreId:'cierre_resultado_id',semaforo:'semaforo_origen',indicador:'indicador_problema',accion:'accion',responsable:'responsable',cuando:'cuando_texto',resultado:'resultado_esperado',estatus:'estatus',observaciones:'observaciones'},required:['cierreId','semaforo','indicador'],nullable:['accion','responsable','cuando','resultado','estatus','observaciones'],nums:[]},
     kpis: {table:'kpis',map:{kpi:'kpi',unidad:'unidad_medida',base:'linea_base',meta:'meta',frecuencia:'frecuencia',formula:'formula_fuente',responsable:'responsable',t1:'meta_t1',t2:'meta_t2',t3:'meta_t3',t4:'meta_t4'},required:['kpi','meta','frecuencia','responsable'],nums:['base','meta','t1','t2','t3','t4']},
     reflexion: {table:'reflexiones',map:{logros:'logros',aprendizajes:'aprendizajes',obstaculos:'obstaculos',distinto:'que_hariamos_distinto',apoyos:'apoyos_necesarios'},required:[],nums:[]},
     okrs: {table:'okrs',map:{objetivo:'objetivo',kr:'key_result',base:'linea_base',meta:'meta',unidad:'unidad_medida',responsable:'responsable'},required:['objetivo','kr','meta','responsable','alineacion'],nums:['base','meta']}
@@ -16,9 +16,25 @@ const Cloud = {
   async all(table) {
     const result=[];
     for(let offset=0;;offset+=500){
-      const order = table==='accesos_usuario_area' ? 'usuario_id' : 'id';
-      let query=this.client.from(table).select('*').order(order);
-      if(table==='accesos_usuario_area') query=query.order('area_id');
+      let query=this.client.from(table).select('*');
+
+      /*
+         El Cierre debe conservar la secuencia de origen. Antes se ordenaba
+         siempre por UUID (`id`), lo que cambiaba la posicion de los
+         indicadores al recargar y esa secuencia alterada llegaba intacta a
+         filtros, dashboard y presentacion. La tabla no tiene una columna
+         funcional de orden; `creado_en` es la unica secuencia de origen
+         persistida disponible. `id` solo desempata sin usar nombre, valor,
+         cumplimiento ni semaforo.
+      */
+      if(table==='cierre_resultados') {
+        query=query.order('creado_en',{ascending:true}).order('id',{ascending:true});
+      } else {
+        const order = table==='accesos_usuario_area' ? 'usuario_id' : 'id';
+        query=query.order(order);
+        if(table==='accesos_usuario_area') query=query.order('area_id');
+      }
+
       const rows=await this.checked(query.range(offset,offset+499));
       result.push(...rows); if(rows.length<500) return result;
     }
@@ -60,6 +76,15 @@ const Cloud = {
     this.ready=true;this.pending=false;this.draftCount=0;
   },
   uuid(obj) { if(!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(obj.id))) obj.id=crypto.randomUUID(); return obj.id; },
+  uuidOrdenado(posicion=0) {
+    const compacto=crypto.randomUUID().replace(/-/g,'').split('');
+    const tiempo=(Date.now()+posicion).toString(16).padStart(12,'0').slice(-12);
+    for(let i=0;i<12;i++) compacto[i]=tiempo[i];
+    compacto[12]='7';
+    compacto[16]=((parseInt(compacto[16],16)&3)|8).toString(16);
+    const h=compacto.join('');
+    return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+  },
   serialize(key,r) {
     const spec=this.specs[key];
     if(spec.required.some(k=>r[k]===null||r[k]===undefined||String(r[k]).trim()==='')) return null;
@@ -72,7 +97,8 @@ const Cloud = {
     for(const [local,remote] of Object.entries(spec.map)) {
       let v=r[local];
       if(spec.nums.includes(local)){v=v===''||v==null?null:toNum(v);if((v===null&&r[local]!==''&&r[local]!=null)||(v!==null&&!Number.isFinite(v)))return null;}
-      else v=v==null?'':String(v);
+      else if(v==null||String(v).trim()==='') v=(spec.nullable||[]).includes(local)?null:'';
+      else v=String(v);
       if(key==='cierre'&&local==='semaforo') v=['Verde','Amarillo','Rojo'].includes(v)?v:null;
       row[remote]=v;
     }
@@ -109,9 +135,20 @@ const Cloud = {
       for(const o of this.objectives)if(!S().objetivos.includes(o.nombre)&&this.baseline.objetivos_estrategicos?.has(o.id))add('objetivos_estrategicos',{id:o.id,nombre:o.nombre,activo:false});
       this.catalogDeletes=()=>{remove('areas',areas);remove('unidades_negocio',units);};
     }
+    let posicionCierreNuevo=0;
     for(const [key,spec] of Object.entries(this.specs)) {
       const ids=new Set();
       for(const r of S().data[key]){
+        /*
+           Los cierres nuevos reciben un UUID temporalmente ordenable antes de
+           insertarse. Asi, incluso cuando un lote comparte `creado_en`, el
+           desempate por `id` conserva la secuencia del arreglo de origen.
+        */
+        if(key==='cierre'&&!this.baseline[spec.table]?.has(String(r.id))){
+          const version=String(r.id).replace(/-/g,'')[12];
+          if(version!=='7') r.id=this.uuidOrdenado(posicionCierreNuevo);
+          posicionCierreNuevo++;
+        }
         const row=this.serialize(key,r);ids.add(String(r.id));
         if(!row){drafts.push(`${SHEET(key).corto}: ${r.indicador||r.kpi||r.nombre||r.objetivo||r.area||'fila incompleta'}`);continue;}
         add(spec.table,row);
@@ -281,6 +318,11 @@ importExcel=async function(file){
         if(old&&(old.areaId!==r.areaId||old.unidadNegocioId!==r.unidadNegocioId))throw new Error(context+': no se permite cambiar el contexto de un ID existente.');
         if(!old&&src.ID)throw new Error(context+': ID desconocido. D\u00E9jalo vac\u00EDo para crear una fila.');
         const unique=sh.key+':'+r.id;if(seen.has(unique))throw new Error(context+': ID repetido en el archivo.');seen.add(unique);
+        if(sh.key==='qqc'){
+          const cierre=S().data.cierre.find(c=>c.areaId===r.areaId&&String(c.anio)===String(r.anio)&&c.tipoPer===r.tipoPer&&(c.trimPer||'')===(r.trimPer||'')&&norm(c.indicador)===norm(src.Indicador||''));
+          if(!cierre)throw new Error(context+': el Indicador no coincide con un registro del Cierre en la misma Unidad, Área y periodo.');
+          r.cierreId=cierre.id;r.semaforo=Calc.semaforo(cierre);r.indicador=cierre.indicador;
+        }
         if(!Cloud.serialize(sh.key,r))throw new Error(context+': faltan campos obligatorios o el periodo no existe.');
         if(sh.key==='reflexion'){
           const same=S().data.reflexion.find(x=>x.areaId===r.areaId&&x.anio===r.anio&&x.tipoPer===r.tipoPer&&(x.trimPer||'')===(r.trimPer||''));

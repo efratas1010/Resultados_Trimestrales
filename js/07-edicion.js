@@ -362,6 +362,7 @@ function sheetPanel(area, sh) {
 function drawRegTable() {
   const area = UI.area, sh = SHEET(UI.sheet), box = $('#regTable'); if (!box) return;
   let rows = Calc.rows(sh.key, area);
+  if (sh.key === 'qqc') return drawQQCTable(box, rows);
   const total = rows.length;
   if (UI.regQ) { const q = norm(UI.regQ); rows = rows.filter(r => sh.cols.some(c => norm(cellText(c, r)).includes(q))); }
   if (!total) {
@@ -381,10 +382,101 @@ function drawRegTable() {
   box.onchange = e => onCellChange(e.target);
 }
 
+
+function periodoQQC(r) {
+  return r.tipoPer === 'Trimestral'
+    ? `${r.trimPer || 'Trimestre sin definir'} ${r.anio || ''}`.trim()
+    : `Anual ${r.anio || ''}`.trim();
+}
+
+function valorCierreQQC(v, unidad) {
+  const n = toNum(v);
+  if (n == null) return '—';
+  return nf.format(n) + (norm(unidad || '') === '%' ? '%' : '');
+}
+
+function prioridadQQCHTML(r) {
+  const detalle = r.semaforoManual
+    ? `<div class="small muted">Manual${r.discrepanciaSemaforo ? `; automático: ${esc(r.semaforoAuto)}` : ''}</div>`
+    : '';
+  return semPill(r.semaforo) + detalle;
+}
+
+function avisoDiscrepanciasQQC(cierres) {
+  const discrepancias = cierres.map(r => ({ r, info: Calc.infoSemaforo(r) })).filter(x => x.info.discrepancia);
+  if (!discrepancias.length) return '';
+  return `<div class="hint" style="margin:0 0 12px"><b>Semáforos manuales conservados:</b> ${discrepancias.map(({r,info}) => `${esc(r.indicador)}: ${esc(info.vigente)} manual; el cálculo automático sería ${esc(info.automatico)} (${fmtPct(info.cumplimiento)}).`).join(' ')}</div>`;
+}
+
+function inputQQC(r, k, tipo = 'text') {
+  const v = r[k] ?? '';
+  const base = `class="cell-in qqc-in" data-cierre-id="${esc(r.cierreId)}" data-k="${esc(k)}" aria-label="${esc(k)}"`;
+  if (k === 'estatus') return `<select ${base}><option value="">—</option>${CONFIG.LISTAS.estatus.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  if (tipo === 'textarea') return `<textarea ${base} rows="2">${esc(v)}</textarea>`;
+  return `<input type="text" ${base} value="${esc(v)}" autocomplete="off">`;
+}
+
+function drawQQCTable(box, sourceRows) {
+  const cierresContexto = Calc.rows('cierre', UI.area, UI.unidadId, UI.areaId);
+  let rows = sourceRows;
+  if (UI.regQ) {
+    const q = norm(UI.regQ);
+    rows = rows.filter(r => ['semaforo','indicador','responsable','accion','cuando','resultado','estatus','observaciones']
+      .some(k => norm(r[k] || '').includes(q)));
+  }
+  if (!sourceRows.length) {
+    box.innerHTML = avisoDiscrepanciasQQC(cierresContexto) + `<div class="empty"><div class="em-ic">${icon('check', 32)}</div><h4>Sin indicadores priorizados</h4><p>No hay rojos ni amarillos dentro de la mitad inferior de la banda amarilla para la Unidad de negocio, Área y periodos actuales.</p></div>`;
+    return;
+  }
+  const grupos = rows.reduce((acc, r) => {
+    const k = [r.unidadNegocioId || r.unidadNegocio, r.areaId || r.area, r.anio, r.tipoPer, r.trimPer].join('|');
+    (acc[k] ||= { label: `${r.unidadNegocio || ''} · ${r.area || ''} · ${periodoQQC(r)}`, rows: [] }).rows.push(r);
+    return acc;
+  }, {});
+  const widths = ['8%','16%','7%','7%','8%','8%','10%','13%','9%','12%','9%','13%'];
+  const headers = ['Prioridad','Indicador','Meta','Real','Variación','Cumplimiento','QUIÉN','QUÉ debe hacer','CUÁNDO','Resultado esperado','Estatus','Observaciones'];
+  const body = Object.values(grupos).map(g => `<section style="margin-bottom:18px"><h3 class="small" style="margin:0 0 8px">${esc(g.label)}</h3><div class="tbl-wrap"><table class="tbl compact qqc-table" style="min-width:1500px"><colgroup>${widths.map(w => `<col style="width:${w}">`).join('')}</colgroup><thead><tr>${headers.map((h,i) => `<th class="static ${i >= 2 && i <= 5 ? 'num' : ''}">${h}</th>`).join('')}</tr></thead><tbody>${g.rows.map(r => {
+    const fav = Calc.variacionCierreFavorable(r);
+    return `<tr data-cierre-id="${esc(r.cierreId)}"><td>${prioridadQQCHTML(r)}</td><td><b>${esc(r.indicador)}</b>${r.unidad ? `<div class="small muted">${esc(r.unidad)}</div>` : ''}</td><td class="num">${valorCierreQQC(r.meta,r.unidad)}</td><td class="num">${valorCierreQQC(r.real,r.unidad)}</td><td class="num ${fav == null ? '' : fav ? 'v-ok' : 'v-bad'}">${esc(Calc.formatearVariacionCierre(r))}</td><td class="num"><b>${fmtPct(r.cumplimiento)}</b></td><td>${inputQQC(r,'responsable')}</td><td>${inputQQC(r,'accion','textarea')}</td><td>${inputQQC(r,'cuando')}</td><td>${inputQQC(r,'resultado','textarea')}</td><td>${inputQQC(r,'estatus')}</td><td>${inputQQC(r,'observaciones','textarea')}</td></tr>`;
+  }).join('')}</tbody></table></div></section>`).join('');
+  box.innerHTML = avisoDiscrepanciasQQC(cierresContexto) + (body || `<div class="empty-sm">Sin coincidencias para “${esc(UI.regQ)}”.</div>`);
+  box.onchange = e => onQQCCellChange(e.target);
+  box.oninput = e => {
+    if (e.target.matches?.('.qqc-in')) setSaveStatus('saving');
+  };
+}
+
+function onQQCCellChange(el) {
+  if (!el.matches?.('.qqc-in')) return;
+  const derivada = Calc.qqcRows(UI.area, UI.unidadId, UI.areaId).find(r => r.cierreId === el.dataset.cierreId);
+  if (!derivada) return;
+  let accion = S().data.qqc.find(r => r.cierreId === derivada.cierreId);
+  if (!accion && !derivada._virtual) accion = S().data.qqc.find(r => r.id === derivada.id);
+  if (!accion) {
+    accion = {
+      id: uid(), cierreId: derivada.cierreId,
+      unidadNegocioId: derivada.unidadNegocioId, unidadNegocio: derivada.unidadNegocio,
+      areaId: derivada.areaId, area: derivada.area,
+      anio: derivada.anio, tipoPer: derivada.tipoPer, trimPer: derivada.trimPer,
+      semaforo: derivada.semaforo, indicador: derivada.indicador,
+      responsable: '', accion: '', cuando: '', resultado: '', estatus: '', observaciones: ''
+    };
+    S().data.qqc.push(accion);
+  }
+  accion.semaforo = derivada.semaforo;
+  accion.indicador = derivada.indicador;
+  accion[el.dataset.k] = el.value.trim();
+  Store.save();
+  setTimeout(() => {
+    drawRegTable();
+    $(`#regTable .qqc-in[data-cierre-id="${derivada.cierreId}"][data-k="${el.dataset.k}"]`)?.focus();
+  }, 0);
+}
+
 /* Celda editable seg\u00FAn el tipo de columna */
 function cellInput(c, r) {
   const v = r[c.k] ?? '', base = `class="cell-in" data-id="${r.id}" data-k="${c.k}" aria-label="${esc(c.l)}"`;
-  if (c.t === 'calc') { const x = c.fn(r); return `<span class="cell-calc">${esc(c.fmt ? c.fmt(x) : (x ?? '\u2014'))}</span>`; }
+  if (c.t === 'calc') { const x = c.fn(r); return `<span class="cell-calc">${esc(c.fmt ? c.fmt(x, r) : (x ?? '\u2014'))}</span>`; }
   if (c.t === 'semaforo') return `<div class="cell-sem">${semPill(Calc.semaforo(r))}<select ${base}>${['Autom\u00E1tico', ...CONFIG.LISTAS.semaforo].map(o => `<option ${o === (v || 'Autom\u00E1tico') ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
   if (c.t === 'select') {
     const dis = c.k === 'trimPer' && r.tipoPer !== 'Trimestral' ? 'disabled' : '';
@@ -453,7 +545,7 @@ const r = {
 
 /* Formato de celdas seg\u00FAn tipo de columna */
 function cellText(c, r) {
-  if (c.t === 'calc') { const v = c.fn(r); return c.fmt ? c.fmt(v) : (v ?? ''); }
+  if (c.t === 'calc') { const v = c.fn(r); return c.fmt ? c.fmt(v, r) : (v ?? ''); }
   if (c.t === 'semaforo') return Calc.semaforo(r);
   return r[c.k] ?? '';
 }
@@ -465,7 +557,7 @@ function fmtCell(c, r, key) {
     case 'percent': return progBar(v);
     case 'date': return `<span style="white-space:nowrap">${fmtDate(v)}</span>${key === 'qqc' && Calc.vencida(r) ? ' <span class="tag danger">Vencida</span>' : ''}`;
     case 'semaforo': return semPill(Calc.semaforo(r)) + (v && v !== 'Autom\u00E1tico' ? ' <span class="tag" data-tip="Sem\u00E1foro forzado manualmente">Manual</span>' : '');
-    case 'calc': { const x = c.fn(r); if (key === 'cierre' && c.k === 'cumplimiento') return `<b>${fmtPct(x)}</b>`; return esc(c.fmt ? c.fmt(x) : x); }
+    case 'calc': { const x = c.fn(r); if (key === 'cierre' && c.k === 'cumplimiento') return `<b>${fmtPct(x)}</b>`; return esc(c.fmt ? c.fmt(x, r) : x); }
     case 'select':
       if (c.k === 'estatus') return estatusPill(v);
       if (c.k === 'semaforo') return semPill(v);

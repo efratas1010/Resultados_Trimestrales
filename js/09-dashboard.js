@@ -60,7 +60,7 @@ function renderPresentacion() {
       ${sel('semaforo', 'Sem\u00E1foro', CONFIG.LISTAS.semaforo, 'Todos', 'Aplica al cierre y al sem\u00E1foro de origen de las acciones')}
       ${sel('estatus', 'Estatus', CONFIG.LISTAS.estatus, 'Todos', 'Aplica al plan de acci\u00F3n')}
       ${sel('responsable', 'Responsable', resp, 'Todos', 'Aplica a acciones, KPIs y OKRs')}
-      ${sel('trimestre', 'Trimestre', CONFIG.LISTAS.trimestre, 'Todos', 'Fecha compromiso de las acciones')}
+      ${sel('trimestre', 'Trimestre', CONFIG.LISTAS.trimestre, 'Todos', 'Periodo trimestral del Cierre')}
       <button type="button" class="btn ghost" data-action="clearFilters" ${activeFilters() ? '' : 'disabled'}>${icon('x', 16)}Limpiar</button>
     </div>
     ${unidadActual ? `<div class="edit-context" style="margin-bottom:14px">
@@ -91,6 +91,7 @@ function renderPresBody() {
 function globales() {
   const c = F.cierre(), q = F.qqc();
   const sems = c.map(r => Calc.semaforo(r));
+  const capturados = q.filter(r => ['responsable','accion','cuando','resultado','estatus','observaciones'].some(k => String(r[k] || '').trim())).length;
   return {
     cumpl: Calc.avgCumpl(c), nInd: c.length,
     verde: sems.filter(s => s === 'Verde').length,
@@ -98,8 +99,8 @@ function globales() {
     rojo: sems.filter(s => s === 'Rojo').length,
     nAcc: q.length,
     comp: q.length ? q.filter(r => r.estatus === CONFIG.ESTATUS_COMPLETADO).length / q.length * 100 : null,
-    venc: q.filter(r => Calc.vencida(r)).length,
-    avAcc: avg(q.map(r => toNum(r.avance) || 0)),
+    captura: q.length ? capturados / q.length * 100 : null,
+    conCuando: q.filter(r => String(r.cuando || '').trim()).length,
     nKpi: F.kpis().length,
     nObj: Object.keys(groupBy(F.okrs(), 'objetivo')).length
   };
@@ -122,14 +123,14 @@ function animateCounts(root) {
 function resumenHTML() {
   const g = globales(), u = S().umbrales;
   const crit = F.qqc().filter(r => r.estatus !== CONFIG.ESTATUS_COMPLETADO && r.estatus !== 'Cancelada')
-    .sort((a, b) => (Calc.vencida(b) - Calc.vencida(a)) || String(a.fecha).localeCompare(String(b.fecha))).slice(0, 6);
+    .sort((a, b) => (a.semaforo === b.semaforo ? (a.cumplimiento ?? 999) - (b.cumplimiento ?? 999) : a.semaforo === 'Rojo' ? -1 : 1)).slice(0, 6);
   return `<div class="kpi-grid">
       ${kpiCard('Cumplimiento promedio', g.cumpl, 'pct', `${g.nInd} indicadores de cierre`, semClass(Calc.semaforoAuto(g.cumpl)), `Promedio del % de cumplimiento (tope 150%). Verde \u2265 ${u.verde}%, amarillo \u2265 ${u.amarillo}%`)}
       ${kpiCard('Indicadores en verde', g.verde, 'int', g.nInd ? fmtPct(g.verde / g.nInd * 100) + ' del total' : '\u2014', 'verde')}
       ${kpiCard('Indicadores en amarillo', g.amarillo, 'int', g.nInd ? fmtPct(g.amarillo / g.nInd * 100) + ' del total' : '\u2014', 'amarillo')}
       ${kpiCard('Indicadores en rojo', g.rojo, 'int', g.nInd ? fmtPct(g.rojo / g.nInd * 100) + ' del total' : '\u2014', 'rojo')}
-      ${kpiCard('Acciones completadas', g.comp, 'pct', `${g.nAcc} acciones \u00B7 avance prom. ${fmtPct(g.avAcc)}`, '', 'Acciones con estatus Completada / total de acciones filtradas')}
-      ${kpiCard('Acciones vencidas', g.venc, 'int', 'Fecha compromiso pasada y sin completar', g.venc ? 'rojo' : 'verde')}
+      ${kpiCard('Planes capturados', g.captura, 'pct', `${g.nAcc} indicadores críticos`, '', 'Indicadores con al menos un campo de acción capturado')}
+      ${kpiCard('Con CUÁNDO capturado', g.conCuando, 'int', 'Texto libre; no se interpreta como fecha', g.conCuando === g.nAcc && g.nAcc ? 'verde' : '')}
       ${kpiCard('KPIs / Objetivos', g.nKpi, 'int', `${g.nObj} objetivos OKR propuestos`)}
     </div>
     <div class="charts">
@@ -143,9 +144,9 @@ function resumenHTML() {
 
 const emptySm = t => `<div class="empty-sm">${icon('check', 18)} ${esc(t)}</div>`;
 function actionItem(r, showArea) {
-  return `<div class="ac-item"><div class="stripe ${semClass(r.semaforo)}"></div><div><h4>${esc(r.indicador)}${showArea ? ` <span class="tag">${esc(r.area)}</span>` : ''}</h4><p>${esc(r.accion)}</p>
-    <div class="ac-meta"><span>${esc(r.responsable)}</span>\u00B7<span>${fmtDate(r.fecha)}</span>${estatusPill(r.estatus)}${Calc.vencida(r) ? '<span class="tag danger">Vencida</span>' : ''}</div>
-    ${r.causa ? `<div class="small muted" style="margin-top:4px"><b>Causa ra\u00EDz:</b> ${esc(r.causa)}</div>` : ''}</div><div>${progBar(r.avance)}</div></div>`;
+  return `<div class="ac-item"><div class="stripe ${semClass(r.semaforo)}"></div><div><h4>${esc(r.indicador)}${showArea ? ` <span class="tag">${esc(r.area)}</span>` : ''}</h4><p>${r.accion ? esc(r.accion) : '<span class="muted">QUÉ debe hacer: sin capturar</span>'}</p>
+    <div class="ac-meta"><span>${r.responsable ? esc(r.responsable) : 'QUIÉN: sin capturar'}</span>·<span>${r.cuando ? esc(r.cuando) : 'CUÁNDO: sin capturar'}</span>${r.estatus ? estatusPill(r.estatus) : '<span class="tag">Estatus sin capturar</span>'}</div>
+    ${r.resultado ? `<div class="small muted" style="margin-top:4px"><b>Resultado esperado:</b> ${esc(r.resultado)}</div>` : ''}${r.observaciones ? `<div class="small muted" style="margin-top:4px"><b>Observaciones:</b> ${esc(r.observaciones)}</div>` : ''}</div></div>`;
 }
 
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
@@ -172,9 +173,25 @@ function drawCharts() {
   charts.c4 = new Chart($('#chKpi'), { type: 'bar', data: { labels: ar4, datasets: CONFIG.LISTAS.frecuencia.map((fq, i) => ({ label: fq, data: ar4.map(a => k.filter(r => r.area === a && r.frecuencia === fq).length), backgroundColor: pal[i % pal.length], borderRadius: 4, maxBarThickness: 46 })).filter(d => d.data.some(Boolean)) }, options: { ...base, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } } } });
 }
 
-const SECTIONS = [['cierre', 'Cierre', 'chart'], ['qqc', 'Acciones cr\u00EDticas (Qui\u00E9n\u2013Qu\u00E9\u2013Cu\u00E1ndo)', 'target'], ['kpis', 'S\u00E1bana de KPIs', 'grid'], ['reflexion', 'Reflexi\u00F3n del \u00E1rea', 'feather'], ['okrs', 'Propuesta de OKRs', 'flag']];
+const SECTIONS = [['cierre', 'Cierre', 'chart'], ['qqc', 'PLAN DE ACCIONES CRÍTICAS | METODOLOGÍA QUIÉN - QUÉ - CUÁNDO', 'target'], ['kpis', 'Sábana de KPIs', 'grid'], ['reflexion', 'Reflexión del área', 'feather'], ['okrs', 'Propuesta de OKRs', 'flag']];
 const secTitle = (t, i, area) => `<div class="sec-title"><div class="sic">${icon(i, 20)}</div><div><h3>${esc(t)}</h3>${area ? `<span class="small muted">${esc(area)}</span>` : ''}</div></div>`;
 const emptyBlock = t => `<div class="empty" style="padding:28px"><div class="em-ic" style="width:56px;height:56px">${icon('info', 26)}</div><p style="margin:0 auto">${esc(t)}</p></div>`;
+
+
+function tablaAccionesCriticasHTML(rows, cierres = []) {
+  const avisoManual = avisoDiscrepanciasQQC(cierres);
+  if (!rows.length) return avisoManual + emptyBlock('Sin rojos ni amarillos dentro de la mitad inferior de la banda amarilla con los filtros actuales.');
+  const grupos = rows.reduce((acc, r) => {
+    const periodo = r.tipoPer === 'Trimestral' ? `${r.trimPer || 'Trimestre sin definir'} ${r.anio || ''}`.trim() : `Anual ${r.anio || ''}`.trim();
+    const key = [r.unidadNegocioId || r.unidadNegocio, r.areaId || r.area, r.anio, r.tipoPer, r.trimPer].join('|');
+    (acc[key] ||= { label: `${r.unidadNegocio || ''} · ${r.area || ''} · ${periodo}`, rows: [] }).rows.push(r);
+    return acc;
+  }, {});
+  const headers = ['Prioridad','Indicador','Meta','Real','Variación','Cumplimiento','QUIÉN','QUÉ debe hacer','CUÁNDO','Resultado esperado','Estatus','Observaciones'];
+  const widths = ['7%','15%','6%','6%','7%','8%','9%','13%','8%','11%','8%','12%'];
+  const valor = (v, unidad) => { const n = toNum(v); return n == null ? '—' : nf.format(n) + (norm(unidad || '') === '%' ? '%' : ''); };
+  return `<div class="qqc-presentacion"><p class="small muted" style="margin:0 0 10px"><b>Criterio de priorización adoptado:</b> todos los rojos y los amarillos con cumplimiento ≥ ${S().umbrales.amarillo}% y &lt; ${nf.format(Calc.puntoMedioBandaAmarilla())}%, la mitad inferior de la banda amarilla hasta el umbral verde de ${S().umbrales.verde}%. El cumplimiento ya respeta el sentido del indicador. No se modifican semáforos y una medición aislada no prueba deterioro.</p>${avisoManual}${Object.values(grupos).map(g => `<section style="margin-bottom:14px"><div class="small" style="font-weight:700;margin-bottom:6px">${esc(g.label)}</div><div class="tbl-wrap"><table class="tbl compact" style="min-width:1380px;font-size:11px;table-layout:fixed"><colgroup>${widths.map(w => `<col style="width:${w}">`).join('')}</colgroup><thead><tr>${headers.map((h,i) => `<th class="static ${i >= 2 && i <= 5 ? 'num' : ''}" style="font-size:9px;padding:5px 6px">${h}</th>`).join('')}</tr></thead><tbody>${g.rows.map(r => { const fav = Calc.variacionCierreFavorable(r); return `<tr><td>${prioridadQQCHTML(r)}</td><td><b>${esc(r.indicador)}</b>${r.unidad ? `<div class="muted">${esc(r.unidad)}</div>` : ''}</td><td class="num">${valor(r.meta,r.unidad)}</td><td class="num">${valor(r.real,r.unidad)}</td><td class="num ${fav == null ? '' : fav ? 'v-ok' : 'v-bad'}">${esc(Calc.formatearVariacionCierre(r))}</td><td class="num"><b>${fmtPct(r.cumplimiento)}</b></td><td>${r.responsable ? esc(r.responsable) : '<span class="muted">—</span>'}</td><td>${r.accion ? esc(r.accion) : '<span class="muted">—</span>'}</td><td>${r.cuando ? esc(r.cuando) : '<span class="muted">—</span>'}</td><td>${r.resultado ? esc(r.resultado) : '<span class="muted">—</span>'}</td><td>${r.estatus ? estatusPill(r.estatus) : '<span class="muted">—</span>'}</td><td>${r.observaciones ? esc(r.observaciones) : '<span class="muted">—</span>'}</td></tr>`; }).join('')}</tbody></table></div></section>`).join('')}</div>`;
+}
 
 function sectionHTML(key, area, withArea = false) {
   const [, title, ic] = SECTIONS.find(s => s[0] === key);
@@ -189,7 +206,7 @@ function sectionHTML(key, area, withArea = false) {
       ${rows.map(r => { const p = Calc.cumplimiento(r); return `<tr><td><b>${esc(r.indicador)}</b> <span class="muted small">${esc(r.unidad || '')}</span>${r.comentarios ? `<div class="small muted">${esc(r.comentarios)}</div>` : ''}</td><td class="num">${fmtNum(r.meta)}</td><td class="num">${fmtNum(r.real)}</td><td>${p == null ? '\u2014' : `<b>${fmtPct(p)}</b>`}</td><td>${semPill(Calc.semaforo(r))}</td></tr>`; }).join('')}</tbody></table></div>`;
     }
   }
-  if (key === 'qqc') body = rows.length ? `<div class="ac-list">${rows.sort((a, b) => (Calc.vencida(b) - Calc.vencida(a)) || String(a.fecha).localeCompare(String(b.fecha))).map(r => actionItem(r)).join('')}</div>` : emptyBlock('Sin acciones registradas con los filtros actuales.');
+  if (key === 'qqc') body = tablaAccionesCriticasHTML(rows, F.get('cierre').filter(r => r.area === area));
   if (key === 'kpis') body = rows.length ? `<div class="tbl-wrap"><table class="tbl compact"><thead><tr><th class="static">KPI</th><th class="static num">L\u00EDnea base</th><th class="static num">Meta</th><th class="static num">Var.</th><th class="static num">T1</th><th class="static num">T2</th><th class="static num">T3</th><th class="static num">T4</th><th class="static">Frecuencia</th><th class="static">Responsable</th></tr></thead><tbody>
     ${rows.map(r => { const v = Calc.variacion(r); return `<tr><td><b>${esc(r.kpi)}</b> <span class="muted small">${esc(r.unidad || '')}</span>${r.formula ? `<div class="small muted">${esc(r.formula)}</div>` : ''}</td><td class="num">${fmtNum(r.base)}</td><td class="num"><b>${fmtNum(r.meta)}</b></td><td class="num">${v == null ? '\u2014' : (v > 0 ? '+' : '') + fmtPct(v)}</td>${['t1', 't2', 't3', 't4'].map(t => `<td class="num">${fmtNum(r[t])}</td>`).join('')}<td>${esc(r.frecuencia)}</td><td>${esc(r.responsable)}</td></tr>`; }).join('')}</tbody></table></div>` : emptyBlock('Sin KPIs con los filtros actuales.');
   if (key === 'reflexion') { const r = rows[0]; const cols = SHEET('reflexion').cols.filter(c => c.t !== 'area'); body = r && cols.some(c => String(r[c.k] || '').trim()) ? `<div class="refl-view">${cols.map(c => `<div class="blk"><h4>${esc(c.l)}</h4><p>${r[c.k] ? esc(r[c.k]) : '<span class="muted">Sin capturar</span>'}</p></div>`).join('')}</div>` : emptyBlock('El \u00E1rea a\u00FAn no captura su reflexi\u00F3n.'); }
@@ -203,7 +220,7 @@ function sectionHTML(key, area, withArea = false) {
 
 function areaStats(a) {
   const c = F.cierre().filter(r => r.area === a), q = F.qqc().filter(r => r.area === a);
-  return { cumpl: Calc.avgCumpl(c), nInd: c.length, nAcc: q.length, venc: q.filter(r => Calc.vencida(r)).length, nKpi: F.kpis().filter(r => r.area === a).length, nObj: Object.keys(groupBy(F.okrs().filter(r => r.area === a), 'objetivo')).length };
+  return { cumpl: Calc.avgCumpl(c), nInd: c.length, nAcc: q.length, conCuando: q.filter(r => String(r.cuando || '').trim()).length, nKpi: F.kpis().filter(r => r.area === a).length, nObj: Object.keys(groupBy(F.okrs().filter(r => r.area === a), 'objetivo')).length };
 }
 function areaHero(a) {
   const s = areaStats(a);
@@ -236,7 +253,7 @@ const COMPARE_COLS = [
   { l: 'Rojos', num: 1, val: r => r.rojo, html: r => `<span style="color:var(--rojo);font-weight:700">${r.rojo}</span>` },
   { l: 'Acciones', num: 1, val: r => r.nAcc },
   { l: '% Completadas', num: 1, val: r => r.comp ?? -1, html: r => fmtPct(r.comp) },
-  { l: 'Vencidas', num: 1, val: r => r.venc, html: r => r.venc ? `<span class="tag danger">${r.venc}</span>` : '0' },
+  { l: 'Con CUÁNDO', num: 1, val: r => r.conCuando },
   { l: 'KPIs', num: 1, val: r => r.nKpi },
   { l: 'Objetivos OKR', num: 1, val: r => r.nObj }
 ];

@@ -13,7 +13,7 @@
    1. DIAPOSITIVA EJECUTIVA DE CIERRE
    ======================================================================= */
 
-function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
+function cierreSlideHTML(area) {
   const rows = F.get('cierre').filter(r => r.area === area);
 
   const periodos = [
@@ -32,6 +32,201 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
     )
   ];
 
+  const claseDensidad =
+    rows.length > 12
+      ? 'cx-maxima'
+      : rows.length > 8
+        ? 'cx-densa'
+        : rows.length > 5
+          ? 'cx-compacta'
+          : 'cx-normal';
+
+  /*
+     Los estilos quedan encapsulados en este modulo para que el ajuste sea
+     autocontenido y no obligue a sustituir archivos CSS de la plataforma.
+     El tamano de filas, fuentes y espacios se calcula con la cantidad de
+     indicadores y con el rectangulo real disponible, sin desplazamiento.
+  */
+  const estilosCierre = `
+    <style>
+      #slides .cx.cx-unificada {
+        --cx-gap: 12px;
+        --cx-fuente-tabla: 16px;
+        --cx-fuente-comentario: 12px;
+        --cx-fuente-meta: 11px;
+        --cx-fuente-label: 10px;
+        --cx-fuente-conteo: 13px;
+        --cx-fuente-encabezado-tabla: 10px;
+        --cx-fuente-unidad: 12px;
+        --cx-fuente-pill: 11px;
+        --cx-fuente-pie: 10px;
+        --cx-tamano-punto: 6px;
+        --cx-alto-encabezado-tabla: 28px;
+        --cx-padding-cabecera: 6px;
+        --cx-padding-banda-x: 14px;
+        --cx-margen-label: 3px;
+        --cx-padding-th-y: 4px;
+        --cx-padding-pill-y: 2px;
+        --cx-padding-pill-x: 7px;
+        --cx-padding-pie: 6px;
+        --cx-py: 6px;
+        --cx-px: 9px;
+        --cx-fuente-titulo: 30px;
+        --cx-fuente-kpi: 30px;
+        --cx-padding-banda-y: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--cx-gap);
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        box-sizing: border-box;
+      }
+
+      #slides .cx.cx-unificada * {
+        box-sizing: border-box;
+      }
+
+      #slides .cx.cx-unificada .cx-head {
+        flex: 0 0 auto;
+        align-items: center;
+        padding-bottom: var(--cx-padding-cabecera);
+      }
+
+      #slides .cx.cx-unificada .cx-head h2 {
+        font-size: var(--cx-fuente-titulo);
+        line-height: 1.04;
+      }
+
+      #slides .cx.cx-unificada .cx-eyebrow,
+      #slides .cx.cx-unificada .cx-meta {
+        font-size: var(--cx-fuente-meta);
+        line-height: 1.25;
+      }
+
+      #slides .cx.cx-unificada .cx-band {
+        flex: 0 0 auto;
+        grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      }
+
+      #slides .cx.cx-unificada .cx-band .cx-kpi,
+      #slides .cx.cx-unificada .cx-cell {
+        padding: var(--cx-padding-banda-y) var(--cx-padding-banda-x);
+      }
+
+      #slides .cx.cx-unificada .cx-band .cx-kpi b {
+        font-size: var(--cx-fuente-kpi);
+      }
+
+      #slides .cx.cx-unificada .cx-band .cx-kpi span,
+      #slides .cx.cx-unificada .cx-cell span {
+        font-size: var(--cx-fuente-label);
+        margin-bottom: var(--cx-margen-label);
+      }
+
+      #slides .cx.cx-unificada .cx-cell b {
+        font-size: var(--cx-fuente-conteo);
+      }
+
+      #slides .cx.cx-unificada .cx-tbl {
+        flex: 1 1 auto;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: visible;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl table {
+        width: 100%;
+        height: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: var(--cx-fuente-tabla);
+      }
+
+      #slides .cx.cx-unificada .cx-tbl thead {
+        height: var(--cx-alto-encabezado-tabla);
+      }
+
+      #slides .cx.cx-unificada .cx-tbl tbody tr {
+        height: calc(100% / var(--cx-filas, 1));
+      }
+
+      #slides .cx.cx-unificada .cx-tbl th {
+        padding: var(--cx-padding-th-y) var(--cx-px);
+        font-size: var(--cx-fuente-encabezado-tabla);
+        line-height: 1.05;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td {
+        padding: var(--cx-py) var(--cx-px);
+        line-height: 1.16;
+        overflow-wrap: anywhere;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td small {
+        display: block;
+        margin-top: 1px;
+        font-size: var(--cx-fuente-comentario);
+        line-height: 1.12;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td em {
+        font-size: var(--cx-fuente-unidad);
+      }
+
+      #slides .cx.cx-unificada .cx-tbl .pill {
+        gap: 4px;
+        padding: var(--cx-padding-pill-y) var(--cx-padding-pill-x);
+        font-size: var(--cx-fuente-pill);
+      }
+
+      #slides .cx.cx-unificada .cx-tbl .pill i {
+        width: var(--cx-tamano-punto);
+        height: var(--cx-tamano-punto);
+      }
+
+      #slides .cx.cx-unificada .cx-foot {
+        flex: 0 0 auto;
+        padding-top: var(--cx-padding-pie);
+        font-size: var(--cx-fuente-pie);
+      }
+
+      /*
+         Las clases de densidad se conservan por compatibilidad, pero ya no
+         fijan tamaños pequeños. Las métricas se calculan con el alto y ancho
+         reales de la diapositiva y con la cantidad efectiva de filas.
+      */
+      #slides .cx.cx-unificada.cx-normal,
+      #slides .cx.cx-unificada.cx-compacta,
+      #slides .cx.cx-unificada.cx-densa,
+      #slides .cx.cx-unificada.cx-maxima {
+        min-height: 0;
+      }
+
+      @media (max-width: 900px) {
+        #slides .cx.cx-unificada .cx-head {
+          flex-direction: row;
+          align-items: center;
+        }
+
+        #slides .cx.cx-unificada .cx-meta {
+          text-align: right;
+        }
+
+        #slides .cx.cx-unificada .cx-band {
+          grid-template-columns: 1.2fr 1fr 1fr 1fr;
+        }
+
+        #slides .cx.cx-unificada .cx-cell:nth-child(3) {
+          border-left: 1px solid var(--border);
+        }
+      }
+    </style>
+  `;
+
   const encabezado = `
     <div class="cx-head">
       <div>
@@ -42,7 +237,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
       <div class="cx-meta">
         <b>Comit\u00E9 Directivo</b>
         <span>${esc(periodos.join(' \u00B7 ') || 'Periodo sin definir')}</span>
-        <span>Parte ${pagina + 1} de ${Math.max(1, Math.ceil(rows.length / porPagina))} \u00B7 ${rows.length} indicadores en total</span>
+        <span>${rows.length} indicador${rows.length === 1 ? '' : 'es'} \u00B7 vista consolidada</span>
       </div>
     </div>
   `;
@@ -56,7 +251,8 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
 
   if (!rows.length) {
     return `
-      <div class="cx">
+      ${estilosCierre}
+      <div class="cx cx-unificada ${claseDensidad}" style="--cx-filas:${Math.max(1, rows.length)}">
         ${encabezado}
         ${emptyBlock('Sin indicadores de cierre con los filtros actuales.')}
         ${pie}
@@ -158,6 +354,15 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
   const tabla = `
     <div class="cx-tbl">
       <table>
+        <colgroup>
+          <col style="width:42%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:12%">
+          <col style="width:12%">
+          <col style="width:14%">
+        </colgroup>
+
         <thead>
           <tr>
             <th>Indicador</th>
@@ -170,8 +375,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
         </thead>
 
         <tbody>
-          ${data.slice(pagina * porPagina, (pagina + 1) * porPagina)
-            .map(item => {
+          ${data.map(item => {
               const registro = item.registro;
 
               const claseVariacion = item.variacion
@@ -227,7 +431,8 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
   `;
 
   return `
-    <div class="cx">
+    ${estilosCierre}
+    <div class="cx cx-unificada ${claseDensidad}" style="--cx-filas:${Math.max(1, rows.length)}">
       ${encabezado}
       ${banda}
       ${tabla}
@@ -665,22 +870,231 @@ function mountCmpSlide() {
    ======================================================================= */
 
 
-/* Prueba reversible: ajuste visual exclusivo de las p\u00E1ginas de Cierre. */
-function ajustarCierrePrueba() {
-  const stage = document.querySelector('#slides .slide-stage');
-  const slide = stage?.querySelector('.slide');
-  const contenido = slide?.querySelector('.cx');
-  if (!stage || !slide || !contenido) return;
-  const estilo = getComputedStyle(stage);
-  const ancho = Math.max(1, stage.clientWidth - parseFloat(estilo.paddingLeft || 0) - parseFloat(estilo.paddingRight || 0));
-  const alto = Math.max(1, stage.clientHeight - parseFloat(estilo.paddingTop || 0) - parseFloat(estilo.paddingBottom || 0));
-  slide.style.animation = 'none';
-  slide.style.transform = 'none';
-  const rect = slide.getBoundingClientRect();
-  const escala = Math.min(1, ancho / Math.max(1, rect.width), alto / Math.max(1, slide.scrollHeight, rect.height));
-  slide.style.transformOrigin = 'top center';
-  slide.style.transform = `scale(${escala})`;
-  stage.style.overflow = 'hidden';
+/*
+   Ajuste exclusivo del Cierre.
+   Conserva el flujo y el orden original del contenido; solo escala la
+   diapositiva completa de forma proporcional a sus indicadores y al espacio
+   disponible para mantener todos los registros juntos, sin desplazamiento.
+*/
+function ajustarCierreCompleto() {
+  const limitar = (valor, minimo, maximo) => {
+    return Math.min(maximo, Math.max(minimo, valor));
+  };
+
+  const aplicarAjuste = () => {
+    const stage = document.querySelector('#slides .slide-stage');
+    const slide = stage?.querySelector('.slide');
+    const contenido = slide?.querySelector('.cx-unificada');
+
+    if (!stage || !slide || !contenido) return;
+
+    const tabla = contenido.querySelector('.cx-tbl');
+    const filas = contenido.querySelectorAll('.cx-tbl tbody tr').length;
+    const cantidad = Math.max(1, filas);
+
+    /*
+       El Cierre ocupa el rectangulo disponible completo. No se usa un lienzo
+       fijo de 1240 px ni una escala global: las filas, fuentes y separaciones
+       crecen o disminuyen con el numero de indicadores y con la pantalla.
+    */
+    stage.style.boxSizing = 'border-box';
+    stage.style.display = 'flex';
+    stage.style.alignItems = 'stretch';
+    stage.style.justifyContent = 'center';
+    stage.style.overflow = 'hidden';
+    stage.style.padding = 'clamp(8px, 1.6vh, 18px) clamp(12px, 2.4vw, 36px)';
+
+    const estiloStage = getComputedStyle(stage);
+    const anchoDisponible = Math.max(
+      1,
+      stage.clientWidth -
+        parseFloat(estiloStage.paddingLeft || 0) -
+        parseFloat(estiloStage.paddingRight || 0)
+    );
+    const altoDisponible = Math.max(
+      1,
+      stage.clientHeight -
+        parseFloat(estiloStage.paddingTop || 0) -
+        parseFloat(estiloStage.paddingBottom || 0)
+    );
+
+    slide.style.animation = 'none';
+    slide.style.boxSizing = 'border-box';
+    slide.style.flex = '0 0 auto';
+    slide.style.width = `${anchoDisponible}px`;
+    slide.style.maxWidth = 'none';
+    slide.style.height = `${altoDisponible}px`;
+    slide.style.maxHeight = 'none';
+    slide.style.margin = '0';
+    slide.style.zoom = '1';
+    slide.style.transform = 'none';
+    slide.style.transformOrigin = 'top center';
+    slide.style.overflow = 'hidden';
+
+    contenido.style.width = '100%';
+    contenido.style.maxWidth = 'none';
+    contenido.style.height = '100%';
+    contenido.style.maxHeight = 'none';
+    contenido.style.setProperty('--cx-filas', String(cantidad));
+
+    const altoPorFila = altoDisponible / cantidad;
+    const anchoPorColumna = anchoDisponible / 6;
+    const fuenteInicial = limitar(
+      Math.min(
+        21,
+        10.5 + altoPorFila * 0.115,
+        10.5 + anchoPorColumna * 0.038
+      ),
+      8,
+      21
+    );
+
+    const aplicarMetricas = fuente => {
+      const factorCantidad = limitar(10 / cantidad, 0.72, 1.25);
+      const gap = limitar(fuente * 0.7 * factorCantidad, 3, 15);
+      const py = limitar(fuente * 0.34 * factorCantidad, 2, 10);
+      const px = limitar(fuente * 0.58, 5, 12);
+      const bandaY = limitar(fuente * 0.64 * factorCantidad, 5, 14);
+
+      contenido.style.setProperty('--cx-gap', `${gap}px`);
+      contenido.style.setProperty('--cx-fuente-tabla', `${fuente}px`);
+      contenido.style.setProperty(
+        '--cx-fuente-comentario',
+        `${limitar(fuente * 0.76, 7, 15)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-meta',
+        `${limitar(fuente * 0.72, 9, 15)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-label',
+        `${limitar(fuente * 0.64, 8, 14)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-conteo',
+        `${limitar(fuente * 0.84, 9, 17)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-encabezado-tabla',
+        `${limitar(fuente * 0.66, 8, 14)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-unidad',
+        `${limitar(fuente * 0.74, 8, 15)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-pill',
+        `${limitar(fuente * 0.7, 8, 14)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-pie',
+        `${limitar(fuente * 0.65, 8, 13)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-tamano-punto',
+        `${limitar(fuente * 0.38, 5, 9)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-alto-encabezado-tabla',
+        `${limitar(fuente * 1.75, 20, 38)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-padding-cabecera',
+        `${limitar(gap * 0.55, 4, 9)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-padding-banda-x',
+        `${limitar(fuente * 0.9, 8, 18)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-margen-label',
+        `${limitar(gap * 0.25, 2, 5)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-padding-th-y',
+        `${limitar(py * 0.72, 2, 7)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-padding-pill-y',
+        `${limitar(py * 0.45, 2, 5)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-padding-pill-x',
+        `${limitar(px * 0.8, 5, 10)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-padding-pie',
+        `${limitar(gap * 0.5, 3, 8)}px`
+      );
+      contenido.style.setProperty('--cx-py', `${py}px`);
+      contenido.style.setProperty('--cx-px', `${px}px`);
+      contenido.style.setProperty(
+        '--cx-fuente-titulo',
+        `${limitar(fuente * 1.75, 20, 38)}px`
+      );
+      contenido.style.setProperty(
+        '--cx-fuente-kpi',
+        `${limitar(fuente * 1.82, 20, 40)}px`
+      );
+      contenido.style.setProperty('--cx-padding-banda-y', `${bandaY}px`);
+    };
+
+    const cabe = () => {
+      const tolerancia = 1;
+      const contenidoCabe =
+        contenido.scrollHeight <= contenido.clientHeight + tolerancia &&
+        contenido.scrollWidth <= contenido.clientWidth + tolerancia;
+      const tablaCabe = !tabla || (
+        tabla.scrollHeight <= tabla.clientHeight + tolerancia &&
+        tabla.scrollWidth <= tabla.clientWidth + tolerancia
+      );
+
+      return contenidoCabe && tablaCabe;
+    };
+
+    /*
+       Busca el mayor tamano que cabe, en vez de imponer una clase pequena al
+       superar 8 o 12 indicadores. Asi la misma diapositiva aprovecha el alto
+       libre cuando tiene pocas filas y se compacta solo cuando es necesario.
+    */
+    let minimo = 8;
+    let maximo = Math.max(minimo, fuenteInicial);
+    let mejor = minimo;
+
+    aplicarMetricas(minimo);
+
+    for (let intento = 0; intento < 9; intento++) {
+      const candidato = (minimo + maximo) / 2;
+      aplicarMetricas(candidato);
+
+      if (cabe()) {
+        mejor = candidato;
+        minimo = candidato;
+      } else {
+        maximo = candidato;
+      }
+    }
+
+    aplicarMetricas(mejor);
+  };
+
+  aplicarAjuste();
+  requestAnimationFrame(() => {
+    aplicarAjuste();
+    requestAnimationFrame(aplicarAjuste);
+  });
+  setTimeout(aplicarAjuste, 180);
+  setTimeout(aplicarAjuste, 500);
+
+  if (!ajustarCierreCompleto._escuchaResize) {
+    ajustarCierreCompleto._escuchaResize = true;
+
+    window.addEventListener('resize', () => {
+      if (document.querySelector('#slides .cx-unificada')) {
+        aplicarAjuste();
+      }
+    });
+  }
 }
 
 const Slides = {
@@ -750,7 +1164,7 @@ const Slides = {
                 'Acciones completadas',
                 global.comp,
                 'pct',
-                `${global.venc} vencidas`
+                `${global.conCuando} con CUÁNDO`
               )}
 
             </div>
@@ -781,12 +1195,12 @@ const Slides = {
 
       SECTIONS.forEach(([clave, titulo]) => {
         if (clave === 'cierre') {
-          const cantidad = F.get('cierre').filter(r => r.area === area).length;
-          const partes = Math.max(1, Math.ceil(cantidad / 3));
-          for (let pagina = 0; pagina < partes; pagina++) {
-            lista.push({ area, sec: `${titulo} \u00B7 ${pagina + 1} de ${partes}`,
-              html: cierreSlideHTML(area, pagina, 3), after: ajustarCierrePrueba });
-          }
+          lista.push({
+            area,
+            sec: titulo,
+            html: cierreSlideHTML(area),
+            after: ajustarCierreCompleto
+          });
         } else {
           lista.push({ area, sec: titulo, html: sectionHTML(clave, area, true) });
         }

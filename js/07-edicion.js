@@ -450,21 +450,7 @@ function onQQCCellChange(el) {
   if (!el.matches?.('.qqc-in')) return;
   const derivada = Calc.qqcRows(UI.area, UI.unidadId, UI.areaId).find(r => r.cierreId === el.dataset.cierreId);
   if (!derivada) return;
-  let accion = S().data.qqc.find(r => r.cierreId === derivada.cierreId);
-  if (!accion && !derivada._virtual) accion = S().data.qqc.find(r => r.id === derivada.id);
-  if (!accion) {
-    accion = {
-      id: uid(), cierreId: derivada.cierreId,
-      unidadNegocioId: derivada.unidadNegocioId, unidadNegocio: derivada.unidadNegocio,
-      areaId: derivada.areaId, area: derivada.area,
-      anio: derivada.anio, tipoPer: derivada.tipoPer, trimPer: derivada.trimPer,
-      semaforo: derivada.semaforo, indicador: derivada.indicador,
-      responsable: '', accion: '', cuando: '', resultado: '', estatus: '', observaciones: ''
-    };
-    S().data.qqc.push(accion);
-  }
-  accion.semaforo = derivada.semaforo;
-  accion.indicador = derivada.indicador;
+  const { accion } = materializarAccionQQC(derivada);
   accion[el.dataset.k] = el.value.trim();
   Store.save();
   setTimeout(() => {
@@ -511,9 +497,80 @@ function onCellChange(el) {
   }, 0);
 }
 
-/* Agrega una fila vac\u00EDa directamente en la tabla */
+/*
+ * Crea o vincula la fila persistente del plan a partir del Cierre.
+ * Los campos de captura permanecen vac\u00EDos: no se asignan responsables,
+ * acciones ni plazos de forma autom\u00E1tica.
+ */
+function materializarAccionQQC(derivada) {
+  let accion = S().data.qqc.find(r => r.cierreId === derivada.cierreId);
+  if (!accion && !derivada._virtual) accion = S().data.qqc.find(r => r.id === derivada.id);
+
+  const creada = !accion;
+  if (!accion) {
+    accion = {
+      id: uid(),
+      responsable: '', accion: '', cuando: '', resultado: '', estatus: '', observaciones: ''
+    };
+    S().data.qqc.push(accion);
+  }
+
+  const fuente = {
+    cierreId: derivada.cierreId,
+    unidadNegocioId: derivada.unidadNegocioId,
+    unidadNegocio: derivada.unidadNegocio,
+    areaId: derivada.areaId,
+    area: derivada.area,
+    anio: derivada.anio,
+    tipoPer: derivada.tipoPer,
+    trimPer: derivada.trimPer,
+    semaforo: derivada.semaforo,
+    indicador: derivada.indicador
+  };
+  const cambiada = Object.entries(fuente).some(([k, v]) => accion[k] !== v);
+  Object.assign(accion, fuente);
+  return { accion, creada, cambiada };
+}
+
+/*
+ * El bot\u00F3n de QQC no debe crear una fila hu\u00E9rfana. Materializa exactamente
+ * los indicadores prioritarios que Calc.qqcRows deriva desde Cierre.
+ */
+function cargarIndicadoresCriticosQQC() {
+  const unidad = unidadEdicionActual();
+  const areaObj = areaEdicionActual();
+  if (!unidad || !areaObj) {
+    toast('Selecciona primero la unidad de negocio y el \u00E1rea.', 'error');
+    return;
+  }
+
+  UI.regQ = '';
+  const derivadas = Calc.qqcRows(areaObj.nombre, unidad.id, areaObj.id);
+  if (!derivadas.length) {
+    drawRegTable();
+    toast('No hay indicadores cr\u00EDticos que cargar desde Cierre para esta unidad y \u00E1rea.');
+    return;
+  }
+
+  let cambios = 0;
+  derivadas.forEach(derivada => {
+    const resultado = materializarAccionQQC(derivada);
+    if (resultado.creada || resultado.cambiada) cambios++;
+  });
+
+  if (cambios) {
+    Auth.log('Indicadores cr\u00EDticos cargados', `${unidad.nombre} \u00B7 ${areaObj.nombre} \u00B7 ${derivadas.length}`);
+    Store.save();
+  }
+  renderRegistro();
+  setTimeout(() => $('#regTable .qqc-in')?.focus(), 0);
+  toast(`${derivadas.length} indicador${derivadas.length === 1 ? '' : 'es'} cr\u00EDtico${derivadas.length === 1 ? '' : 's'} cargado${derivadas.length === 1 ? '' : 's'} desde Cierre.`, 'ok');
+}
+
+/* Agrega una fila directamente en la tabla o carga el origen de QQC */
 function addInlineRow(preset = {}) {
   const sh = SHEET(UI.sheet); if (!sh || sh.form) return;
+  if (sh.key === 'qqc') return cargarIndicadoresCriticosQQC();
 const unidad = unidadEdicionActual();
 const areaObj = areaEdicionActual();
 

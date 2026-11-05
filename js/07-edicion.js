@@ -285,6 +285,11 @@ function renderRegistro() {
         ${hojasCompletas} de
         ${SHEETS.length} hojas completas
       </span>
+
+      <span class="pill azul">
+        <i></i>
+        ${esc(Calc.textoPeriodoAnalisis(true))}
+      </span>
     </div>
 
     <div
@@ -345,8 +350,10 @@ function renderRegistro() {
   }
 }
 
+const esCampoPeriodo = c => ['anio', 'tipoPer', 'trimPer'].includes(c.k);
+
 function sheetPanel(area, sh) {
-  const head = `<div class="sheet-head"><div><h2>${esc(sh.nombre)}</h2><p>${esc(sh.ayuda)}</p></div>
+  const head = `<div class="sheet-head"><div><h2>${esc(Calc.tituloPeriodoAnalisis(sh.nombre))}</h2><p>${esc(sh.ayuda)}</p></div>
     ${sh.form ? '' : `<div style="display:flex;gap:8px;flex-wrap:wrap"><label class="search">${icon('search', 16)}<input type="search" id="regSearch" data-input="regSearch" placeholder="Buscar en esta hoja\u2026" value="${esc(UI.regQ)}" aria-label="Buscar en esta hoja"></label>
       <button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar ${sh.key === 'okrs' ? 'Key Result' : 'fila'}</button></div>`}</div>`;
   if (!sh.form) return head + `<div id="regTable"></div>`;
@@ -370,7 +377,7 @@ function drawRegTable() {
       <p>${esc(sh.ayuda)}</p><button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar la primera fila</button></div>`;
     return;
   }
-  const cols = sh.cols.filter(c => c.t !== 'area');
+  const cols = sh.cols.filter(c => c.t !== 'area' && !esCampoPeriodo(c));
   const rowHtml = r => {
     const errs = validateRow(sh, r), nE = Object.keys(errs).length;
     return `<tr data-id="${r.id}" class="${nE ? 'row-inc' : ''}">${cols.map(c => `<td class="cell ${c.t === 'textarea' || c.full ? 'cell-wide' : ''}" ${errs[c.k] ? `data-err="1" title="${esc(errs[c.k])}"` : ''}>${cellInput(c, r)}</td>`).join('')}
@@ -591,7 +598,8 @@ const r = {
   area: areaObj.nombre,
 
   ...defaults(sh),
-  ...preset
+  ...preset,
+  ...Calc.camposPeriodoAnalisis()
 };
   S().data[sh.key].push(r); UI.regQ = '';
   Auth.log('Registro agregado', `${sh.nombre} \u00B7 ${UI.area}`);
@@ -668,11 +676,11 @@ let lastFocus = null;
 function openForm(key, id, preset = {}) {
   const sh = SHEET(key), area = UI.area, row = id ? S().data[key].find(r => r.id === id) : null;
   const vals = { ...defaults(sh), ...preset, ...(row || {}) };
-  const fields = sh.cols.filter(c => c.t !== 'area' && c.t !== 'calc');
+  const fields = sh.cols.filter(c => c.t !== 'area' && c.t !== 'calc' && !esCampoPeriodo(c));
   lastFocus = document.activeElement;
   $('#modalRoot').innerHTML = `<div class="modal-bg" data-action="modalBg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <form id="mForm" novalidate>
-      <header><div><h2 id="mTitle">${row ? 'Editar' : 'Agregar'} \u00B7 ${esc(sh.nombre)}</h2><span class="small muted">${esc(area)}</span></div>
+      <header><div><h2 id="mTitle">${row ? 'Editar' : 'Agregar'} \u00B7 ${esc(Calc.tituloPeriodoAnalisis(sh.nombre))}</h2><span class="small muted">${esc(area)}</span></div>
         <button type="button" class="icon-btn" data-action="closeModal" aria-label="Cerrar" style="margin-left:auto">${icon('x')}</button></header>
       <div class="body">${key === 'cierre' ? '<div class="preview" id="mPreview"></div>' : ''}${fields.map(c => fieldHtml(c, vals[c.k], area, key)).join('')}</div>
       <footer><span class="hint" style="margin-right:auto">Los campos con <span style="color:var(--rojo)">*</span> son obligatorios</span>
@@ -693,7 +701,7 @@ function openForm(key, id, preset = {}) {
   syncPer(); form.addEventListener('change', syncPer);
   form.addEventListener('submit', ev => {
     ev.preventDefault();
-    const o = read();
+    const o = { ...read(), ...Calc.camposPeriodoAnalisis() };
     fields.forEach(c => { if (['number', 'currency', 'percent'].includes(c.t) && o[c.k] !== '' && toNum(o[c.k]) != null) o[c.k] = toNum(o[c.k]); });
        if (o.tipoPer === 'Anual') o.trimPer = '';
     const errs = validateRow(sh, o);
@@ -746,7 +754,9 @@ function onReflInput(el) {
   unidadNegocio: unidadEdicionActual()?.nombre || '',
 
   areaId: UI.areaId,
-  area: areaEdicionActual()?.nombre || UI.area
+  area: areaEdicionActual()?.nombre || UI.area,
+
+  ...Calc.camposPeriodoAnalisis()
 }; S().data.reflexion.push(r); }
   r[el.dataset.k] = el.value; $('#cnt_' + el.dataset.k).textContent = el.value.length + ' caracteres';
   setSaveStatus('saving'); saveRefl();

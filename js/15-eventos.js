@@ -228,6 +228,17 @@ function cargarAreasMigracion(el) {
 const Changes = {
   homeUnidad: el => { UI.homeUnidadId = el.value; renderInicio(); },
   migrationUnidad: el => cargarAreasMigracion(el),
+  periodoTipo: el => {
+    const trimestral = el.value === 'Trimestral';
+    const campo = $('#paTrimestreField');
+    const select = $('#paTrimestre');
+    if (campo) campo.hidden = !trimestral;
+    if (select) {
+      select.disabled = !trimestral;
+      select.required = trimestral;
+      if (!trimestral) select.value = '';
+    }
+  },
     /* ===============================================================
      DASHBOARD · UNIDAD DE NEGOCIO → ÁREA
      =============================================================== */
@@ -441,6 +452,51 @@ document.addEventListener('submit', e => {
   if (form.id === 'loginForm') {
     e.preventDefault();
     return doLogin(form);
+  }
+
+  /* Periodo central de análisis */
+  if (form.id === 'periodoAnalisisForm') {
+    e.preventDefault();
+    const anio = String(form.elements.anio.value || '').trim();
+    const tipoPer = form.elements.tipoPer.value;
+    const trimPer = tipoPer === 'Trimestral'
+      ? String(form.elements.trimPer.value || '').trim()
+      : '';
+    const etiqueta = String(form.elements.etiqueta.value || '').trim();
+
+    if (!CONFIG.LISTAS.anios.includes(anio)) {
+      toast('Selecciona un año válido.', 'error');
+      return form.elements.anio.focus();
+    }
+    if (!CONFIG.LISTAS.tipoPer.includes(tipoPer)) {
+      toast('Selecciona un tipo de periodo válido.', 'error');
+      return form.elements.tipoPer.focus();
+    }
+    if (tipoPer === 'Trimestral' && !CONFIG.LISTAS.trimestre.includes(trimPer)) {
+      toast('Selecciona el trimestre.', 'error');
+      return form.elements.trimPer.focus();
+    }
+    if (etiqueta.length > 120) {
+      toast('La etiqueta adicional no puede exceder 120 caracteres.', 'error');
+      return form.elements.etiqueta.focus();
+    }
+
+    const disponible = !Cloud?.ready || !Cloud.periods?.length || Cloud.periods.some(p =>
+      String(p.anio) === anio &&
+      p.tipo === tipoPer &&
+      String(p.trimestre || '') === trimPer
+    );
+    if (!disponible) {
+      toast('El periodo seleccionado no existe en el catálogo de Supabase.', 'error');
+      return;
+    }
+
+    S().periodoAnalisis = { anio, tipoPer, trimPer, etiqueta };
+    Auth.log('Periodo de análisis actualizado', Calc.textoPeriodoAnalisis(true));
+    Store.save();
+    renderAll();
+    toast('Periodo de análisis actualizado', 'ok');
+    return;
   }
 
 

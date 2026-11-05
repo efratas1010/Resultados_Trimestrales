@@ -1,152 +1,79 @@
-'use strict';
+-- Plataforma_Portafolio_Modular
+-- Migración incremental: configuración central del Periodo de análisis
+-- Conserva todos los registros existentes. No modifica las llaves periodo_id
+-- de Cierre, Plan de acciones críticas, KPIs, Reflexión ni OKRs.
 
-/* =======================================================================
-   MÓDULO 3 · ALMACENAMIENTO
-   localStorage + unidades de negocio + indicador de guardado
-   ======================================================================= */
+begin;
 
-const Store = {
-  state: null,
+alter table public.configuracion_plataforma
+  add column if not exists periodo_analisis_anio integer,
+  add column if not exists periodo_analisis_tipo public.tipo_periodo,
+  add column if not exists periodo_analisis_trimestre public.trimestre,
+  add column if not exists periodo_analisis_etiqueta text;
 
-  /* Copia limpia de las unidades iniciales */
-  unidadesIniciales() {
-    return (CONFIG.UNIDADES_NEGOCIO || []).map(unidad => ({
-      id: unidad.id,
-      nombre: unidad.nombre,
-      areas: (unidad.areas || []).map(area => ({
-        id: area.id,
-        nombre: area.nombre
-      }))
-    }));
-  },
+-- Inicialización compatible con la configuración vigente. Solo llena valores
+-- faltantes; no sobrescribe una configuración central previamente definida.
+update public.configuracion_plataforma
+set
+  periodo_analisis_anio = coalesce(periodo_analisis_anio, anio_planeacion),
+  periodo_analisis_tipo = coalesce(periodo_analisis_tipo, 'Anual'::public.tipo_periodo),
+  periodo_analisis_trimestre = case
+    when coalesce(periodo_analisis_tipo, 'Anual'::public.tipo_periodo) = 'Anual'
+      then null
+    else periodo_analisis_trimestre
+  end
+where id = true;
 
-  empty() {
-    return {
-      version: 2,
-      sample: false,
+alter table public.configuracion_plataforma
+  alter column periodo_analisis_anio set default 2026,
+  alter column periodo_analisis_anio set not null,
+  alter column periodo_analisis_tipo set default 'Anual'::public.tipo_periodo,
+  alter column periodo_analisis_tipo set not null;
 
-      empresa: CONFIG.EMPRESA,
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.configuracion_plataforma'::regclass
+      and conname = 'configuracion_periodo_analisis_anio_ck'
+  ) then
+    alter table public.configuracion_plataforma
+      add constraint configuracion_periodo_analisis_anio_ck
+      check (periodo_analisis_anio between 2000 and 2100);
+  end if;
 
-      /* ===============================================================
-         ESTRUCTURA LEGACY
-         Se conserva temporalmente para no romper la plataforma actual.
-         =============================================================== */
-      areas: [...CONFIG.AREAS],
-
-      /* ===============================================================
-         NUEVA ESTRUCTURA
-         Unidad de negocio → Áreas
-         =============================================================== */
-      unidadesNegocio: this.unidadesIniciales(),
-
-      umbrales: {
-        ...CONFIG.UMBRALES
-      },
-
-      objetivos: [
-        ...CONFIG.OBJETIVOS_ESTRATEGICOS
-      ],
-
-      data: Object.fromEntries(
-        SHEETS.map(sheet => [sheet.key, []])
-      )
-    };
-  },
-
-  load() {
-    try {
-      const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
-
-      if (raw) {
-        const guardado = JSON.parse(raw);
-        const base = this.empty();
-
-        this.state = {
-          ...base,
-          ...guardado,
-
-          umbrales: {
-            ...base.umbrales,
-            ...(guardado.umbrales || {})
-          },
-
-          data: {
-            ...base.data,
-            ...(guardado.data || {})
-          },
-
-          /*
-           * Compatibilidad:
-           * si el almacenamiento anterior todavía no tenía unidades,
-           * se crean desde CONFIG.UNIDADES_NEGOCIO.
-           */
-          unidadesNegocio:
-            Array.isArray(guardado.unidadesNegocio)
-              ? guardado.unidadesNegocio
-              : base.unidadesNegocio
-        };
-
-        return true;
-      }
-    } catch (error) {
-      console.warn(
-        'No se pudo leer el almacenamiento local',
-        error
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.configuracion_plataforma'::regclass
+      and conname = 'configuracion_periodo_analisis_tipo_trimestre_ck'
+  ) then
+    alter table public.configuracion_plataforma
+      add constraint configuracion_periodo_analisis_tipo_trimestre_ck
+      check (
+        (periodo_analisis_tipo = 'Anual' and periodo_analisis_trimestre is null)
+        or
+        (periodo_analisis_tipo = 'Trimestral' and periodo_analisis_trimestre is not null)
       );
-    }
+  end if;
+end $$;
 
-    return false;
-  },
+-- Garantiza que el contexto inicial tenga su fila estructurada en el catálogo
+-- de periodos. No se altera ni elimina ningún periodo existente.
+insert into public.periodos (anio, tipo, trimestre)
+select periodo_analisis_anio, periodo_analisis_tipo, periodo_analisis_trimestre
+from public.configuracion_plataforma
+where id = true
+on conflict do nothing;
 
-  _write: debounce(() => {
-    try {
-      localStorage.setItem(
-        CONFIG.STORAGE_KEY,
-        JSON.stringify(Store.state)
-      );
+comment on column public.configuracion_plataforma.periodo_analisis_anio is
+  'Año del contexto central de análisis.';
+comment on column public.configuracion_plataforma.periodo_analisis_tipo is
+  'Tipo estructurado del contexto central: Anual o Trimestral.';
+comment on column public.configuracion_plataforma.periodo_analisis_trimestre is
+  'T1-T4 cuando el tipo central es Trimestral; nulo para Anual.';
+comment on column public.configuracion_plataforma.periodo_analisis_etiqueta is
+  'Etiqueta descriptiva opcional de corte; no forma parte de la llave de datos.';
 
-      setSaveStatus('ok');
-    } catch (error) {
-      console.error(error);
-
-      setSaveStatus('error');
-
-      toast(
-        'No se pudo guardar en el navegador. Exporta a Excel para respaldar.',
-        'error'
-      );
-    }
-  }, 400),
-
-  save() {
-    setSaveStatus('saving');
-    this._write();
-  }
-};
-
-const S = () => Store.state;
-
-function setSaveStatus(status) {
-  const elemento = $('#saveStatus');
-
-  if (!elemento) return;
-
-  elemento.className =
-    'save-status ' +
-    (status === 'ok' ? '' : status);
-
-  const hora = new Date().toLocaleTimeString(
-    'es-MX',
-    {
-      hour: '2-digit',
-      minute: '2-digit'
-    }
-  );
-
-  $('.txt', elemento).textContent =
-    status === 'saving'
-      ? 'Guardando…'
-      : status === 'error'
-        ? 'Error al guardar'
-        : `Guardado · ${hora}`;
-}
+commit;

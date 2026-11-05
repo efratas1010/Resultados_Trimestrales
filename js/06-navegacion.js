@@ -12,8 +12,7 @@ areaId: '', sheet: 'cierre', regQ: '',
   area: '',
   semaforo: '',
   estatus: '',
-  responsable: '',
-  trimestre: ''
+  responsable: ''
 },
 };
 const VIEWS = {
@@ -107,7 +106,11 @@ function renderTopbar() {
   const v = VIEWS[UI.view];
   $('#homeBtn').hidden = UI.view === 'inicio';
   $('#homeBtn').innerHTML = icon('chevL', 16) + 'Inicio';
-  $('#viewTitle').textContent = v.t; $('#viewSub').textContent = UI.view === 'registro' && !Auth.isAdmin() ? 'Captura la información de tu área, hoja por hoja.' : v.s;
+  $('#viewTitle').textContent = v.t;
+  const baseSub = UI.view === 'registro' && !Auth.isAdmin() ? 'Captura la información de tu área, hoja por hoja.' : v.s;
+  $('#viewSub').textContent = ['registro', 'presentacion'].includes(UI.view)
+    ? `${baseSub} Periodo: ${Calc.textoPeriodoAnalisis(true)}.`
+    : baseSub;
   if (!['registro', 'presentacion'].includes(UI.view)) { $('#topActions').innerHTML = ''; return; }
   if (!Auth.isAdmin()) { $('#topActions').innerHTML = `
     <button type="button" class="btn" data-action="import" data-tip="Importa un .xlsx; solo se cargan tus áreas">${icon('upload', 16)}<span class="lbl">Importar Excel</span></button>

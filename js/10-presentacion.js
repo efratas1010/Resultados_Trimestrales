@@ -16,21 +16,7 @@
 function cierreSlideHTML(area) {
   const rows = F.get('cierre').filter(r => r.area === area);
 
-  const periodos = [
-    ...new Set(
-      rows
-        .map(r => {
-          if (!r.anio) return '';
-
-          if (r.tipoPer === 'Trimestral') {
-            return `${r.trimPer || ''} ${r.anio}`.trim();
-          }
-
-          return `Anual ${r.anio}`;
-        })
-        .filter(Boolean)
-    )
-  ];
+  const periodo = Calc.textoPeriodoAnalisis(true);
 
   const claseDensidad =
     rows.length > 12
@@ -231,12 +217,12 @@ function cierreSlideHTML(area) {
     <div class="cx-head">
       <div>
         <span class="cx-eyebrow">${esc(area)}</span>
-        <h2>Cierre de resultados</h2>
+        <h2>${esc(Calc.tituloPeriodoAnalisis('Cierre de resultados'))}</h2>
       </div>
 
       <div class="cx-meta">
         <b>Comit\u00E9 Directivo</b>
-        <span>${esc(periodos.join(' \u00B7 ') || 'Periodo sin definir')}</span>
+        <span>${esc(periodo)}</span>
         <span>${rows.length} indicador${rows.length === 1 ? '' : 'es'} \u00B7 vista consolidada</span>
       </div>
     </div>
@@ -480,7 +466,7 @@ function areaSlideHTML(area) {
   return `
     <div class="ax">
       <div class="ax-head">
-        <span class="ax-eyebrow">Direcci\u00F3n / \u00E1rea</span>
+        <span class="ax-eyebrow">Direcci\u00F3n / \u00E1rea · ${esc(Calc.textoPeriodoAnalisis(true))}</span>
         <h2 class="ax-name">${esc(area)}</h2>
       </div>
 
@@ -533,7 +519,7 @@ function cmpSlideHTML() {
       <div class="cp-top">
         <div>
           <span class="cx-eyebrow">Comparativo entre \u00E1reas</span>
-          <h2>Cumplimiento \u00B7 Cierre de resultados</h2>
+          <h2>${esc(Calc.tituloPeriodoAnalisis('Cumplimiento · Cierre de resultados'))}</h2>
         </div>
 
         <div class="cp-tools">
@@ -1135,6 +1121,8 @@ const Slides = {
 
             <h1>${esc(CONFIG.LOGIN.TITULO)}</h1>
 
+            <p><b>${esc(Calc.textoPeriodoAnalisis(true))}</b></p>
+
             <p>
               ${areas.length}
               ${areas.length === 1 ? '\u00E1rea' : '\u00E1reas'} \u00B7
@@ -1197,12 +1185,12 @@ const Slides = {
         if (clave === 'cierre') {
           lista.push({
             area,
-            sec: titulo,
+            sec: Calc.tituloPeriodoAnalisis(titulo),
             html: cierreSlideHTML(area),
             after: ajustarCierreCompleto
           });
         } else {
-          lista.push({ area, sec: titulo, html: sectionHTML(clave, area, true) });
+          lista.push({ area, sec: Calc.tituloPeriodoAnalisis(titulo), html: sectionHTML(clave, area, true) });
         }
       });
     });

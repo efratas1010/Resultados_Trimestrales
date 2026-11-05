@@ -7,6 +7,7 @@
 
 function renderConfig() {
   const st = S();
+  const periodo = Calc.periodoAnalisis();
 
   if (!Array.isArray(st.unidadesNegocio)) {
     st.unidadesNegocio = [];
@@ -217,6 +218,50 @@ function renderConfig() {
 
   $('#view-config').innerHTML = `
     <div class="grid fade-in">
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px">
+          <div>
+            <h3>Periodo de análisis</h3>
+            <p class="small muted" style="margin:4px 0 0;max-width:780px">
+              Contexto central para Edición, Dashboard y Presentación. La etiqueta de corte es descriptiva; la llave de los datos sigue siendo Unidad de negocio → Área → Año → Tipo de periodo → Trimestre.
+            </p>
+          </div>
+          <span class="pill azul"><i></i>${esc(Calc.textoPeriodoAnalisis(true))}</span>
+        </div>
+
+        <form id="periodoAnalisisForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));align-items:end">
+          <div class="field">
+            <label for="paAnio">Año</label>
+            <select id="paAnio" name="anio" class="input" required>
+              ${CONFIG.LISTAS.anios.map(anio => `<option value="${esc(anio)}" ${String(anio) === periodo.anio ? 'selected' : ''}>${esc(anio)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="paTipo">Tipo de periodo</label>
+            <select id="paTipo" name="tipoPer" class="input" data-change="periodoTipo" required>
+              ${CONFIG.LISTAS.tipoPer.map(tipo => `<option value="${esc(tipo)}" ${tipo === periodo.tipoPer ? 'selected' : ''}>${esc(tipo)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="field" id="paTrimestreField" ${periodo.tipoPer === 'Trimestral' ? '' : 'hidden'}>
+            <label for="paTrimestre">Trimestre</label>
+            <select id="paTrimestre" name="trimPer" class="input" ${periodo.tipoPer === 'Trimestral' ? 'required' : 'disabled'}>
+              <option value="">Selecciona…</option>
+              ${CONFIG.LISTAS.trimestre.map(trim => `<option value="${esc(trim)}" ${trim === periodo.trimPer ? 'selected' : ''}>${esc(trim)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="field" style="min-width:280px">
+            <label for="paEtiqueta">Etiqueta adicional de corte <span class="small muted">(opcional)</span></label>
+            <input id="paEtiqueta" name="etiqueta" class="input" maxlength="120" value="${esc(periodo.etiqueta)}" placeholder="Ej. Acumulado a octubre">
+          </div>
+
+          <button type="submit" class="btn primary">${icon('check', 16)}Guardar periodo</button>
+        </form>
+        <p class="hint" style="margin-top:12px">Cambiar este contexto no modifica ni elimina registros existentes. Los registros nuevos usarán el periodo guardado automáticamente.</p>
+      </div>
 
       <!-- ===============================================================
            EMPRESA + SEMÁFORO

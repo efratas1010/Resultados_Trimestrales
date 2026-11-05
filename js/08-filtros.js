@@ -45,11 +45,16 @@ const F = {
     );
   },
 
+  periodo(r) {
+    return Calc.coincidePeriodoAnalisis(r);
+  },
+
   cierre() {
     const f = UI.filters;
 
     return S().data.cierre.filter(r =>
       this.a(r) &&
+      this.periodo(r) &&
       (
         !f.semaforo ||
         Calc.semaforo(r) === f.semaforo
@@ -62,6 +67,7 @@ const F = {
 
     return Calc.qqcRows(null, '', '').filter(r =>
       this.a(r) &&
+      this.periodo(r) &&
       this.resp(r) &&
       (
         !f.semaforo ||
@@ -70,10 +76,6 @@ const F = {
       (
         !f.estatus ||
         r.estatus === f.estatus
-      ) &&
-      (
-        !f.trimestre ||
-        r.trimPer === f.trimestre
       )
     );
   },
@@ -81,19 +83,22 @@ const F = {
   kpis() {
     return S().data.kpis.filter(r =>
       this.a(r) &&
+      this.periodo(r) &&
       this.resp(r)
     );
   },
 
   reflexion() {
     return S().data.reflexion.filter(r =>
-      this.a(r)
+      this.a(r) &&
+      this.periodo(r)
     );
   },
 
   okrs() {
     return S().data.okrs.filter(r =>
       this.a(r) &&
+      this.periodo(r) &&
       this.resp(r)
     );
   },

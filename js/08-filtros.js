@@ -1,8 +1,8 @@
 'use strict';
 
 /* =======================================================================
-   MÓDULO 8 · FILTROS
-   Unidad de negocio → Área + filtros combinables
+   MÃ“DULO 8 Â· FILTROS
+   Unidad de negocio â†’ Ãrea + filtros combinables
    ======================================================================= */
 
 function unidadFiltroActual() {
@@ -78,19 +78,6 @@ const F = {
     );
   },
 
-  propuestas() {
-    const f = UI.filters;
-
-    return S().data.propuestas.filter(r =>
-      this.a(r) &&
-      this.resp(r) &&
-      (
-        !f.trimestre ||
-        r.trimestre === f.trimestre
-      )
-    );
-  },
-
   kpis() {
     return S().data.kpis.filter(r =>
       this.a(r) &&
@@ -118,7 +105,7 @@ const F = {
 
 
 /* =======================================================================
-   ÁREAS DISPONIBLES EN DASHBOARD Y PRESENTACIÓN
+   ÃREAS DISPONIBLES EN DASHBOARD Y PRESENTACIÃ“N
    ======================================================================= */
 
 const areasFiltradas = () => {

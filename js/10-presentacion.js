@@ -1,10 +1,10 @@
 'use strict';
 
 /* =======================================================================
-   MÓDULO 10 · MODO PRESENTACIÓN
+   M\u00D3DULO 10 \u00B7 MODO PRESENTACI\u00D3N
    Teclas:
-   ← →  Cambiar sección
-   ↑ ↓  Cambiar área
+   \u2190 \u2192  Cambiar secci\u00F3n
+   \u2191 \u2193  Cambiar \u00E1rea
    Inicio / Fin
    Esc  Salir
    ======================================================================= */
@@ -40,16 +40,16 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
       </div>
 
       <div class="cx-meta">
-        <b>Comité Directivo</b>
-        <span>${esc(periodos.join(' · ') || 'Periodo sin definir')}</span>
-        <span>Parte ${pagina + 1} de ${Math.max(1, Math.ceil(rows.length / porPagina))} · ${rows.length} indicadores en total</span>
+        <b>Comit\u00E9 Directivo</b>
+        <span>${esc(periodos.join(' \u00B7 ') || 'Periodo sin definir')}</span>
+        <span>Parte ${pagina + 1} de ${Math.max(1, Math.ceil(rows.length / porPagina))} \u00B7 ${rows.length} indicadores en total</span>
       </div>
     </div>
   `;
 
   const pie = `
     <div class="cx-foot">
-      <span>${esc(area)} • Documento de Trabajo Interno</span>
+      <span>${esc(area)} \u2022 Documento de Trabajo Interno</span>
       <span>Fuente: Datos consolidados al cierre del periodo</span>
     </div>
   `;
@@ -71,7 +71,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
   const formatearValor = (valor, unidad) => {
     const numero = toNum(valor);
 
-    if (numero == null) return '—';
+    if (numero == null) return '\u2014';
 
     return nf.format(numero) + (norm(unidad) === '%' ? '%' : '');
   };
@@ -98,7 +98,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
 
     return {
       texto:
-        (variacion > 0 ? '+' : variacion < 0 ? '−' : '') +
+        (variacion > 0 ? '+' : variacion < 0 ? '\u2212' : '') +
         nf.format(Math.abs(Math.round(variacion * 10) / 10)) +
         (resultadoEnPuntos ? ' pts' : '%'),
       favorable
@@ -146,7 +146,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
       </div>
 
       <div class="cx-cell">
-        <span>Rojos (críticos)</span>
+        <span>Rojos (cr\u00EDticos)</span>
         <b class="rojo">
           <i></i>
           ${textoIndicadores(contarSemaforo('Rojo'))}
@@ -165,7 +165,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
             <th class="num">Real</th>
             <th class="num">Var %</th>
             <th class="num">Cumpl.</th>
-            <th class="ctr">Semáforo</th>
+            <th class="ctr">Sem\u00E1foro</th>
           </tr>
         </thead>
 
@@ -207,7 +207,7 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
                   </td>
 
                   <td class="num ${claseVariacion}">
-                    ${item.variacion ? item.variacion.texto : '—'}
+                    ${item.variacion ? item.variacion.texto : '\u2014'}
                   </td>
 
                   <td class="num">
@@ -238,8 +238,8 @@ function cierreSlideHTML(area, pagina = 0, porPagina = 3) {
 
 
 /* =======================================================================
-   2. PORTADA DE CADA ÁREA
-   Cumplimiento + resultados + plan de acción + propuestas + KPIs + OKRs
+   2. PORTADA DE CADA \u00C1REA
+   Cumplimiento + resultados + plan de acci\u00F3n + KPIs + OKRs
    ======================================================================= */
 
 function areaSlideHTML(area) {
@@ -253,13 +253,8 @@ function areaSlideHTML(area) {
     ],
     [
       estadisticas.nAcc,
-      'Plan de acción',
+      'Plan de acci\u00F3n',
       'Acciones'
-    ],
-    [
-      estadisticas.nProp,
-      'Propuestas',
-      'Iniciativas'
     ],
     [
       estadisticas.nKpi,
@@ -280,7 +275,7 @@ function areaSlideHTML(area) {
   return `
     <div class="ax">
       <div class="ax-head">
-        <span class="ax-eyebrow">Dirección / área</span>
+        <span class="ax-eyebrow">Direcci\u00F3n / \u00E1rea</span>
         <h2 class="ax-name">${esc(area)}</h2>
       </div>
 
@@ -312,8 +307,8 @@ function areaSlideHTML(area) {
 
 
 /* =======================================================================
-   3. COMPARATIVO DE CUMPLIMIENTO ENTRE ÁREAS
-   Filtro propio de la presentación
+   3. COMPARATIVO DE CUMPLIMIENTO ENTRE \u00C1REAS
+   Filtro propio de la presentaci\u00F3n
    ======================================================================= */
 
 const perLbl = registro => {
@@ -332,13 +327,13 @@ function cmpSlideHTML() {
     <div class="cp">
       <div class="cp-top">
         <div>
-          <span class="cx-eyebrow">Comparativo entre áreas</span>
-          <h2>Cumplimiento · Cierre de resultados</h2>
+          <span class="cx-eyebrow">Comparativo entre \u00E1reas</span>
+          <h2>Cumplimiento \u00B7 Cierre de resultados</h2>
         </div>
 
         <div class="cp-tools">
           <details class="cp-dd">
-            <summary id="cpSum">Áreas</summary>
+            <summary id="cpSum">\u00C1reas</summary>
 
             <div class="cp-menu">
               <div class="cp-mbtn">
@@ -362,12 +357,12 @@ function cmpSlideHTML() {
 
       <div class="cx-foot">
         <span>
-          Promedio del % de cumplimiento de los indicadores de cierre de cada área
+          Promedio del % de cumplimiento de los indicadores de cierre de cada \u00E1rea
         </span>
 
         <span>
-          Verde ≥ ${S().umbrales.verde}% ·
-          Amarillo ≥ ${S().umbrales.amarillo}%
+          Verde \u2265 ${S().umbrales.verde}% \u00B7
+          Amarillo \u2265 ${S().umbrales.amarillo}%
         </span>
       </div>
     </div>
@@ -456,7 +451,7 @@ function mountCmpSlide() {
     );
 
     resumenAreas.textContent =
-      `Áreas · ${seleccionadas.length} de ${todasLasAreas.length}`;
+      `\u00C1reas \u00B7 ${seleccionadas.length} de ${todasLasAreas.length}`;
 
     const datos = seleccionadas
       .map(area => {
@@ -481,7 +476,7 @@ function mountCmpSlide() {
 
     if (!datos.length) {
       cuerpo.innerHTML = emptyBlock(
-        'Selecciona al menos un área en el filtro “Áreas”.'
+        'Selecciona al menos un \u00E1rea en el filtro \u201C\u00C1reas\u201D.'
       );
 
       return;
@@ -532,8 +527,8 @@ function mountCmpSlide() {
           <b>
             ${
               mayor
-                ? `${esc(mayor.area)} · ${fmtPct(mayor.cumplimiento)}`
-                : '—'
+                ? `${esc(mayor.area)} \u00B7 ${fmtPct(mayor.cumplimiento)}`
+                : '\u2014'
             }
           </b>
         </div>
@@ -543,14 +538,14 @@ function mountCmpSlide() {
           <b>
             ${
               menor
-                ? `${esc(menor.area)} · ${fmtPct(menor.cumplimiento)}`
-                : '—'
+                ? `${esc(menor.area)} \u00B7 ${fmtPct(menor.cumplimiento)}`
+                : '\u2014'
             }
           </b>
         </div>
 
         <div class="cx-cell">
-          <span>Áreas comparadas</span>
+          <span>\u00C1reas comparadas</span>
           <b>${datos.length}</b>
         </div>
       </div>
@@ -572,14 +567,14 @@ function mountCmpSlide() {
             return `
               <div class="cp-row">
                 <span class="cp-pos">
-                  ${dato.cumplimiento == null ? '—' : indice + 1}
+                  ${dato.cumplimiento == null ? '\u2014' : indice + 1}
                 </span>
 
                 <div class="cp-name">
                   <b>${esc(dato.area)}</b>
 
                   <small>
-                    ${dato.total} ind. ·
+                    ${dato.total} ind. \u00B7
                     <i class="verde"></i>${dato.verdes}
                     <i class="amarillo"></i>${dato.amarillos}
                     <i class="rojo"></i>${dato.rojos}
@@ -666,11 +661,11 @@ function mountCmpSlide() {
 
 
 /* =======================================================================
-   4. CONTROL GENERAL DE LA PRESENTACIÓN
+   4. CONTROL GENERAL DE LA PRESENTACI\u00D3N
    ======================================================================= */
 
 
-/* Prueba reversible: ajuste visual exclusivo de las páginas de Cierre. */
+/* Prueba reversible: ajuste visual exclusivo de las p\u00E1ginas de Cierre. */
 function ajustarCierrePrueba() {
   const stage = document.querySelector('#slides .slide-stage');
   const slide = stage?.querySelector('.slide');
@@ -721,19 +716,18 @@ const Slides = {
             >
 
             <span class="eyebrow">
-              ${esc(S().empresa || '')} · ${esc(unidadFiltroActual()?.nombre || '')} · Portafolio estratégico
+              ${esc(S().empresa || '')} \u00B7 ${esc(unidadFiltroActual()?.nombre || '')} \u00B7 Portafolio estrat\u00E9gico
             </span>
 
             <h1>${esc(CONFIG.LOGIN.TITULO)}</h1>
 
             <p>
               ${areas.length}
-              ${areas.length === 1 ? 'área' : 'áreas'} ·
-              ${global.nInd} indicadores de cierre ·
-              ${global.nAcc} acciones ·
-              ${global.nProp} propuestas ·
+              ${areas.length === 1 ? '\u00E1rea' : '\u00E1reas'} \u00B7
+              ${global.nInd} indicadores de cierre \u00B7
+              ${global.nAcc} acciones \u00B7
               ${global.nKpi} KPIs
-              ${activeFilters() ? ' · con filtros aplicados' : ''}
+              ${activeFilters() ? ' \u00B7 con filtros aplicados' : ''}
             </p>
 
             <div class="kpi-grid" style="max-width:980px">
@@ -749,7 +743,7 @@ const Slides = {
                 'Verde / Amarillo / Rojo',
                 global.nInd,
                 'int',
-                `${global.verde} · ${global.amarillo} · ${global.rojo}`
+                `${global.verde} \u00B7 ${global.amarillo} \u00B7 ${global.rojo}`
               )}
 
               ${kpiCard(
@@ -759,13 +753,6 @@ const Slides = {
                 `${global.venc} vencidas`
               )}
 
-              ${kpiCard(
-                'Propuestas',
-                global.nProp,
-                'int',
-                `${global.nKpi} KPIs · ${global.nObj} objetivos OKR`,
-                'oro'
-              )}
             </div>
           </div>
         `
@@ -780,11 +767,11 @@ const Slides = {
       });
     }
 
-    /* Diapositivas de cada área */
+    /* Diapositivas de cada \u00E1rea */
     areas.forEach(area => {
       lista.push({
         area,
-        sec: 'Portada del área',
+        sec: 'Portada del \u00E1rea',
         html: `
           <div class="slide-cover">
             ${areaSlideHTML(area)}
@@ -797,7 +784,7 @@ const Slides = {
           const cantidad = F.get('cierre').filter(r => r.area === area).length;
           const partes = Math.max(1, Math.ceil(cantidad / 3));
           for (let pagina = 0; pagina < partes; pagina++) {
-            lista.push({ area, sec: `${titulo} · ${pagina + 1} de ${partes}`,
+            lista.push({ area, sec: `${titulo} \u00B7 ${pagina + 1} de ${partes}`,
               html: cierreSlideHTML(area, pagina, 3), after: ajustarCierrePrueba });
           }
         } else {
@@ -833,7 +820,7 @@ const Slides = {
     try {
       contenedor.requestFullscreen?.().catch(() => {});
     } catch (error) {
-      /* La presentación sigue funcionando sin pantalla completa */
+      /* La presentaci\u00F3n sigue funcionando sin pantalla completa */
     }
 
     this.render();
@@ -850,7 +837,7 @@ const Slides = {
         document.exitFullscreen();
       }
     } catch (error) {
-      /* Sin acción */
+      /* Sin acci\u00F3n */
     }
 
     lastFocus?.focus?.();
@@ -933,7 +920,7 @@ const Slides = {
           type="button"
           class="icon-btn"
           data-action="slideClose"
-          aria-label="Salir de la presentación"
+          aria-label="Salir de la presentaci\u00F3n"
         >
           ${icon('x')}
         </button>
@@ -946,7 +933,7 @@ const Slides = {
           )}
 
           <span>
-            · ${esc(slideActual.sec)}
+            \u00B7 ${esc(slideActual.sec)}
           </span>
         </div>
 
@@ -970,7 +957,7 @@ const Slides = {
             class="input"
             data-change="slideArea"
           >
-            <option value="">—</option>
+            <option value="">\u2014</option>
 
             ${areas
               .map(
@@ -1041,8 +1028,8 @@ const Slides = {
         </div>
 
         <span class="kbd">
-          <kbd>←</kbd><kbd>→</kbd> sección ·
-          <kbd>↑</kbd><kbd>↓</kbd> área ·
+          <kbd>\u2190</kbd><kbd>\u2192</kbd> secci\u00F3n \u00B7
+          <kbd>\u2191</kbd><kbd>\u2193</kbd> \u00E1rea \u00B7
           <kbd>Esc</kbd> salir
         </span>
       </div>

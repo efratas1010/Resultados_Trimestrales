@@ -1,6 +1,6 @@
 'use strict';
 /* =======================================================================
-   MÓDULO 7 · SECCIÓN 1: REGISTRO
+   M\u00D3DULO 7 \u00B7 SECCI\u00D3N 1: REGISTRO
    ======================================================================= */
 function renderRegistro() {
   const unidades = unidadesEdicion();
@@ -9,8 +9,8 @@ function renderRegistro() {
   const areaObj = areaEdicionActual();
 
   /*
-   * Si la unidad seleccionada dejó de existir,
-   * limpia la selección.
+   * Si la unidad seleccionada dej\u00F3 de existir,
+   * limpia la selecci\u00F3n.
    */
   if (
     UI.unidadId &&
@@ -20,8 +20,8 @@ function renderRegistro() {
   }
 
   /*
-   * Si el área seleccionada dejó de existir,
-   * limpia únicamente el área.
+   * Si el \u00E1rea seleccionada dej\u00F3 de existir,
+   * limpia \u00FAnicamente el \u00E1rea.
    */
   if (
     UI.areaId &&
@@ -48,7 +48,7 @@ function renderRegistro() {
           data-change="unidadEdicion"
         >
           <option value="">
-            Selecciona una unidad…
+            Selecciona una unidad\u2026
           </option>
 
           ${unidades
@@ -73,9 +73,9 @@ function renderRegistro() {
 
       <div class="field">
         <label for="areaEditSel">
-          Área
+          \u00C1rea
           ${tip(
-            'Las áreas dependen de la unidad de negocio seleccionada.'
+            'Las \u00E1reas dependen de la unidad de negocio seleccionada.'
           )}
         </label>
 
@@ -88,7 +88,7 @@ function renderRegistro() {
           <option value="">
             ${
               unidad
-                ? 'Selecciona un área…'
+                ? 'Selecciona un \u00E1rea\u2026'
                 : 'Primero selecciona una unidad'
             }
           </option>
@@ -129,12 +129,12 @@ function renderRegistro() {
               <div>
                 <b>
                   ${esc(unidad.nombre)}
-                  →
+                  \u2192
                   ${esc(areaObj.nombre)}
                 </b>
 
                 <div class="small muted">
-                  Unidad y área seleccionadas
+                  Unidad y \u00E1rea seleccionadas
                 </div>
               </div>
             </div>
@@ -162,8 +162,8 @@ function renderRegistro() {
         </h4>
 
         <p>
-          Entra a Administración → Configuración
-          y crea al menos una unidad con sus áreas.
+          Entra a Administraci\u00F3n \u2192 Configuraci\u00F3n
+          y crea al menos una unidad con sus \u00E1reas.
         </p>
       </div>
     `;
@@ -172,7 +172,7 @@ function renderRegistro() {
   }
 
   /*
-   * Todavía no se ha seleccionado unidad.
+   * Todav\u00EDa no se ha seleccionado unidad.
    */
   if (!unidad) {
     $('#view-registro').innerHTML = `
@@ -188,7 +188,7 @@ function renderRegistro() {
         </h4>
 
         <p>
-          Después podrás seleccionar una de las áreas
+          Despu\u00E9s podr\u00E1s seleccionar una de las \u00E1reas
           configuradas dentro de esa unidad.
         </p>
       </div>
@@ -198,7 +198,7 @@ function renderRegistro() {
   }
 
   /*
-   * La unidad no tiene áreas.
+   * La unidad no tiene \u00E1reas.
    */
   if (!areas.length) {
     $('#view-registro').innerHTML = `
@@ -210,12 +210,12 @@ function renderRegistro() {
         </div>
 
         <h4>
-          ${esc(unidad.nombre)} no tiene áreas
+          ${esc(unidad.nombre)} no tiene \u00E1reas
         </h4>
 
         <p>
-          Agrega las áreas desde
-          Administración → Configuración.
+          Agrega las \u00E1reas desde
+          Administraci\u00F3n \u2192 Configuraci\u00F3n.
         </p>
       </div>
     `;
@@ -224,7 +224,7 @@ function renderRegistro() {
   }
 
   /*
-   * Todavía no se ha seleccionado área.
+   * Todav\u00EDa no se ha seleccionado \u00E1rea.
    */
   if (!areaObj) {
     $('#view-registro').innerHTML = `
@@ -236,11 +236,11 @@ function renderRegistro() {
         </div>
 
         <h4>
-          Selecciona el área que deseas editar
+          Selecciona el \u00E1rea que deseas editar
         </h4>
 
         <p>
-          Solo aparecen las áreas pertenecientes a
+          Solo aparecen las \u00E1reas pertenecientes a
           ${esc(unidad.nombre)}.
         </p>
       </div>
@@ -347,16 +347,16 @@ function renderRegistro() {
 
 function sheetPanel(area, sh) {
   const head = `<div class="sheet-head"><div><h2>${esc(sh.nombre)}</h2><p>${esc(sh.ayuda)}</p></div>
-    ${sh.form ? '' : `<div style="display:flex;gap:8px;flex-wrap:wrap"><label class="search">${icon('search', 16)}<input type="search" id="regSearch" data-input="regSearch" placeholder="Buscar en esta hoja…" value="${esc(UI.regQ)}" aria-label="Buscar en esta hoja"></label>
+    ${sh.form ? '' : `<div style="display:flex;gap:8px;flex-wrap:wrap"><label class="search">${icon('search', 16)}<input type="search" id="regSearch" data-input="regSearch" placeholder="Buscar en esta hoja\u2026" value="${esc(UI.regQ)}" aria-label="Buscar en esta hoja"></label>
       <button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar ${sh.key === 'okrs' ? 'Key Result' : 'fila'}</button></div>`}</div>`;
   if (!sh.form) return head + `<div id="regTable"></div>`;
-  // Reflexión: formulario de texto libre estructurado
+  // Reflexi\u00F3n: formulario de texto libre estructurado
   const r = Calc.rows('reflexion', area)[0] || {};
   return head + `<div class="refl-grid">${sh.cols.filter(c => c.t !== 'area').map(c => `
     <div class="refl-card"><label for="rf_${c.k}"><b>${esc(c.l)}</b></label><span class="hint">${esc(c.help || '')}</span>
-      <textarea id="rf_${c.k}" class="input" data-input="refl" data-k="${c.k}" placeholder="Escribe aquí…">${esc(r[c.k] || '')}</textarea>
+      <textarea id="rf_${c.k}" class="input" data-input="refl" data-k="${c.k}" placeholder="Escribe aqu\u00ED\u2026">${esc(r[c.k] || '')}</textarea>
       <span class="cnt" id="cnt_${c.k}">${String(r[c.k] || '').length} caracteres</span></div>`).join('')}</div>
-    <p class="hint" style="margin-top:12px">${icon('check', 14)} Se guarda automáticamente mientras escribes.</p>`;
+    <p class="hint" style="margin-top:12px">${icon('check', 14)} Se guarda autom\u00E1ticamente mientras escribes.</p>`;
 }
 
 function drawRegTable() {
@@ -365,7 +365,7 @@ function drawRegTable() {
   const total = rows.length;
   if (UI.regQ) { const q = norm(UI.regQ); rows = rows.filter(r => sh.cols.some(c => norm(cellText(c, r)).includes(q))); }
   if (!total) {
-    box.innerHTML = `<div class="empty"><div class="em-ic">${icon(sh.icon, 32)}</div><h4>Aún no hay registros en “${esc(sh.nombre)}”</h4>
+    box.innerHTML = `<div class="empty"><div class="em-ic">${icon(sh.icon, 32)}</div><h4>A\u00FAn no hay registros en \u201C${esc(sh.nombre)}\u201D</h4>
       <p>${esc(sh.ayuda)}</p><button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar la primera fila</button></div>`;
     return;
   }
@@ -376,27 +376,27 @@ function drawRegTable() {
       <td class="actions">${nE ? '<span class="tag danger" title="Faltan campos obligatorios">Incompleta</span> ' : ''}<button type="button" class="icon-btn" data-action="editRow" data-id="${r.id}" aria-label="Abrir en ventana" data-tip="Abrir en ventana">${icon('edit', 16)}</button><button type="button" class="icon-btn" data-action="dupRow" data-id="${r.id}" aria-label="Duplicar" data-tip="Duplicar">${icon('copy', 16)}</button><button type="button" class="icon-btn del" data-action="delRow" data-id="${r.id}" aria-label="Eliminar" data-tip="Eliminar">${icon('trash', 16)}</button></td></tr>`;
   };
   box.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr>${cols.map(c => `<th class="static ${c.num || ['number', 'currency'].includes(c.t) ? 'num' : ''}" scope="col">${esc(c.l)}${c.req ? ' <span style="color:var(--rojo)">*</span>' : ''}</th>`).join('')}<th class="static" scope="col"><span style="position:absolute;left:-9999px">Acciones</span></th></tr></thead>
-    <tbody>${rows.map(rowHtml).join('') || `<tr><td colspan="${cols.length + 1}"><div class="empty-sm">Sin coincidencias para “${esc(UI.regQ)}”.</div></td></tr>`}</tbody></table></div>
-    <p class="hint" style="margin-top:8px">${rows.length} de ${total} registros · Escribe directo en cada celda; se guarda al salir de ella. <span style="color:var(--rojo)">*</span> obligatorio.</p>`;
+    <tbody>${rows.map(rowHtml).join('') || `<tr><td colspan="${cols.length + 1}"><div class="empty-sm">Sin coincidencias para \u201C${esc(UI.regQ)}\u201D.</div></td></tr>`}</tbody></table></div>
+    <p class="hint" style="margin-top:8px">${rows.length} de ${total} registros \u00B7 Escribe directo en cada celda; se guarda al salir de ella. <span style="color:var(--rojo)">*</span> obligatorio.</p>`;
   box.onchange = e => onCellChange(e.target);
 }
 
-/* Celda editable según el tipo de columna */
+/* Celda editable seg\u00FAn el tipo de columna */
 function cellInput(c, r) {
   const v = r[c.k] ?? '', base = `class="cell-in" data-id="${r.id}" data-k="${c.k}" aria-label="${esc(c.l)}"`;
-  if (c.t === 'calc') { const x = c.fn(r); return `<span class="cell-calc">${esc(c.fmt ? c.fmt(x) : (x ?? '—'))}</span>`; }
-  if (c.t === 'semaforo') return `<div class="cell-sem">${semPill(Calc.semaforo(r))}<select ${base}>${['Automático', ...CONFIG.LISTAS.semaforo].map(o => `<option ${o === (v || 'Automático') ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
+  if (c.t === 'calc') { const x = c.fn(r); return `<span class="cell-calc">${esc(c.fmt ? c.fmt(x) : (x ?? '\u2014'))}</span>`; }
+  if (c.t === 'semaforo') return `<div class="cell-sem">${semPill(Calc.semaforo(r))}<select ${base}>${['Autom\u00E1tico', ...CONFIG.LISTAS.semaforo].map(o => `<option ${o === (v || 'Autom\u00E1tico') ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
   if (c.t === 'select') {
     const dis = c.k === 'trimPer' && r.tipoPer !== 'Trimestral' ? 'disabled' : '';
-    return `<select ${base} ${dis}><option value="">—</option>${getOpts(c).map(o => `<option ${String(o) === String(v) ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    return `<select ${base} ${dis}><option value="">\u2014</option>${getOpts(c).map(o => `<option ${String(o) === String(v) ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   }
   if (c.t === 'date') return `<input type="date" ${base} value="${esc(v)}">`;
-  if (['number', 'currency', 'percent'].includes(c.t)) return `<input type="text" inputmode="decimal" ${base} value="${esc(v)}" style="text-align:right" placeholder="${c.t === 'percent' ? '0–100' : '0'}">`;
+  if (['number', 'currency', 'percent'].includes(c.t)) return `<input type="text" inputmode="decimal" ${base} value="${esc(v)}" style="text-align:right" placeholder="${c.t === 'percent' ? '0\u2013100' : '0'}">`;
   if (c.t === 'textarea') return `<textarea ${base} rows="2">${esc(v)}</textarea>`;
   return `<input type="text" ${base} value="${esc(v)}">`;
 }
 
-/* Guarda la celda editada y recalcula la tabla sin perder la posición */
+/* Guarda la celda editada y recalcula la tabla sin perder la posici\u00F3n */
 function onCellChange(el) {
   if (!el.matches || !el.matches('.cell-in')) return;
   const sh = SHEET(UI.sheet), r = S().data[sh.key].find(x => x.id === el.dataset.id); if (!r) return;
@@ -404,8 +404,8 @@ function onCellChange(el) {
   let v = el.value.trim();
   if (['number', 'currency', 'percent'].includes(c.t) && v !== '') {
     const n = toNum(v);
-    if (n == null) { toast(`“${c.l}” debe ser un número.`, 'error'); el.value = r[c.k] ?? ''; return; }
-    if (c.t === 'percent' && (n < 0 || n > 100)) { toast(`“${c.l}” debe estar entre 0 y 100.`, 'error'); el.value = r[c.k] ?? ''; return; }
+    if (n == null) { toast(`\u201C${c.l}\u201D debe ser un n\u00FAmero.`, 'error'); el.value = r[c.k] ?? ''; return; }
+    if (c.t === 'percent' && (n < 0 || n > 100)) { toast(`\u201C${c.l}\u201D debe estar entre 0 y 100.`, 'error'); el.value = r[c.k] ?? ''; return; }
     v = n;
   }
   r[c.k] = v;
@@ -419,7 +419,7 @@ function onCellChange(el) {
   }, 0);
 }
 
-/* Agrega una fila vacía directamente en la tabla */
+/* Agrega una fila vac\u00EDa directamente en la tabla */
 function addInlineRow(preset = {}) {
   const sh = SHEET(UI.sheet); if (!sh || sh.form) return;
 const unidad = unidadEdicionActual();
@@ -427,7 +427,7 @@ const areaObj = areaEdicionActual();
 
 if (!unidad || !areaObj) {
   return toast(
-    'Selecciona primero la unidad de negocio y el área.',
+    'Selecciona primero la unidad de negocio y el \u00E1rea.',
     'error'
   );
 }
@@ -445,13 +445,13 @@ const r = {
   ...preset
 };
   S().data[sh.key].push(r); UI.regQ = '';
-  Auth.log('Registro agregado', `${sh.nombre} · ${UI.area}`);
+  Auth.log('Registro agregado', `${sh.nombre} \u00B7 ${UI.area}`);
   Store.save(); renderRegistro();
   const first = $(`#regTable tr[data-id="${r.id}"] .cell-in`);
   if (first) { first.scrollIntoView({ block: 'nearest', inline: 'start' }); first.focus(); }
 }
 
-/* Formato de celdas según tipo de columna */
+/* Formato de celdas seg\u00FAn tipo de columna */
 function cellText(c, r) {
   if (c.t === 'calc') { const v = c.fn(r); return c.fmt ? c.fmt(v) : (v ?? ''); }
   if (c.t === 'semaforo') return Calc.semaforo(r);
@@ -464,15 +464,14 @@ function fmtCell(c, r, key) {
     case 'currency': return fmtCur(v);
     case 'percent': return progBar(v);
     case 'date': return `<span style="white-space:nowrap">${fmtDate(v)}</span>${key === 'qqc' && Calc.vencida(r) ? ' <span class="tag danger">Vencida</span>' : ''}`;
-    case 'semaforo': return semPill(Calc.semaforo(r)) + (v && v !== 'Automático' ? ' <span class="tag" data-tip="Semáforo forzado manualmente">Manual</span>' : '');
+    case 'semaforo': return semPill(Calc.semaforo(r)) + (v && v !== 'Autom\u00E1tico' ? ' <span class="tag" data-tip="Sem\u00E1foro forzado manualmente">Manual</span>' : '');
     case 'calc': { const x = c.fn(r); if (key === 'cierre' && c.k === 'cumplimiento') return `<b>${fmtPct(x)}</b>`; return esc(c.fmt ? c.fmt(x) : x); }
     case 'select':
       if (c.k === 'estatus') return estatusPill(v);
-      if (c.k === 'prioridad') return prioPill(v);
       if (c.k === 'semaforo') return semPill(v);
-      return esc(v || '—');
-    case 'textarea': return v ? `<span class="clip" title="${esc(v)}">${esc(v)}</span>` : '<span class="muted">—</span>';
-    default: return v ? esc(v) : '<span class="muted">—</span>';
+      return esc(v || '\u2014');
+    case 'textarea': return v ? `<span class="clip" title="${esc(v)}">${esc(v)}</span>` : '<span class="muted">\u2014</span>';
+    default: return v ? esc(v) : '<span class="muted">\u2014</span>';
   }
 }
 
@@ -487,11 +486,11 @@ function validateRow(sh, r) {
     const v = r[c.k], empty = v === '' || v == null;
     if (c.req && empty) { e[c.k] = 'Campo obligatorio'; return; }
     if (empty) return;
-    if (['number', 'currency', 'percent'].includes(c.t) && toNum(v) == null) e[c.k] = 'Debe ser un número';
+    if (['number', 'currency', 'percent'].includes(c.t) && toNum(v) == null) e[c.k] = 'Debe ser un n\u00FAmero';
     if (c.t === 'percent' && toNum(v) != null && (toNum(v) < 0 || toNum(v) > 100)) e[c.k] = 'Debe estar entre 0 y 100';
     if (c.t === 'currency' && toNum(v) != null && toNum(v) < 0) e[c.k] = 'No puede ser negativo';
-    if (c.t === 'date' && (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v + 'T00:00:00')))) e[c.k] = 'Fecha no válida';
-       if (c.t === 'select' && !getOpts(c).includes(v)) e[c.k] = 'Elige una opción de la lista';
+    if (c.t === 'date' && (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v + 'T00:00:00')))) e[c.k] = 'Fecha no v\u00E1lida';
+       if (c.t === 'select' && !getOpts(c).includes(v)) e[c.k] = 'Elige una opci\u00F3n de la lista';
   });
   if (sh.cols.some(c => c.k === 'tipoPer') && r.tipoPer === 'Trimestral' && !r.trimPer) e.trimPer = 'Elige el trimestre';
   return e;
@@ -504,10 +503,10 @@ function fieldHtml(c, v, area, key) {
   let input;
   if (c.t === 'textarea') input = `<textarea ${common} rows="3">${esc(v ?? '')}</textarea>`;
   else if (c.t === 'select' || c.t === 'semaforo') {
-    const opts = c.t === 'semaforo' ? ['Automático', ...CONFIG.LISTAS.semaforo] : getOpts(c);
-    input = `<select ${common}>${c.t === 'select' ? '<option value="">Selecciona…</option>' : ''}${opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    const opts = c.t === 'semaforo' ? ['Autom\u00E1tico', ...CONFIG.LISTAS.semaforo] : getOpts(c);
+    input = `<select ${common}>${c.t === 'select' ? '<option value="">Selecciona\u2026</option>' : ''}${opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   } else if (c.t === 'date') input = `<input type="date" ${common} value="${esc(v ?? '')}">`;
-  else if (['number', 'currency', 'percent'].includes(c.t)) input = `<input type="text" inputmode="decimal" ${common} value="${esc(v ?? '')}" placeholder="${c.t === 'percent' ? '0 – 100' : c.t === 'currency' ? '$0' : '0'}">`;
+  else if (['number', 'currency', 'percent'].includes(c.t)) input = `<input type="text" inputmode="decimal" ${common} value="${esc(v ?? '')}" placeholder="${c.t === 'percent' ? '0 \u2013 100' : c.t === 'currency' ? '$0' : '0'}">`;
   else {
     let dl = '';
     if (c.list) { const vals = [...new Set(S().data[key].filter(r => c.k === 'responsable' || r.area === area).map(r => r[c.k]).filter(Boolean))]; if (c.k === 'responsable') SHEETS.forEach(s => S().data[s.key].forEach(r => r.responsable && vals.push(r.responsable))); dl = `<datalist id="dl_${c.k}">${[...new Set(vals)].map(x => `<option value="${esc(x)}">`).join('')}</datalist>`; }
@@ -524,7 +523,7 @@ function openForm(key, id, preset = {}) {
   lastFocus = document.activeElement;
   $('#modalRoot').innerHTML = `<div class="modal-bg" data-action="modalBg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <form id="mForm" novalidate>
-      <header><div><h2 id="mTitle">${row ? 'Editar' : 'Agregar'} · ${esc(sh.nombre)}</h2><span class="small muted">${esc(area)}</span></div>
+      <header><div><h2 id="mTitle">${row ? 'Editar' : 'Agregar'} \u00B7 ${esc(sh.nombre)}</h2><span class="small muted">${esc(area)}</span></div>
         <button type="button" class="icon-btn" data-action="closeModal" aria-label="Cerrar" style="margin-left:auto">${icon('x')}</button></header>
       <div class="body">${key === 'cierre' ? '<div class="preview" id="mPreview"></div>' : ''}${fields.map(c => fieldHtml(c, vals[c.k], area, key)).join('')}</div>
       <footer><span class="hint" style="margin-right:auto">Los campos con <span style="color:var(--rojo)">*</span> son obligatorios</span>
@@ -532,8 +531,8 @@ function openForm(key, id, preset = {}) {
     </form></div></div>`;
   const form = $('#mForm');
   const read = () => { const o = {}; fields.forEach(c => { const el = form.elements[c.k]; o[c.k] = el ? el.value.trim() : ''; }); return o; };
-  const preview = () => { const p = $('#mPreview'); if (!p) return; const o = read(); const c = Calc.cumplimiento(o); const s = o.semaforo && o.semaforo !== 'Automático' ? o.semaforo : Calc.semaforoAuto(c);
-    p.innerHTML = `${icon('chart', 18)}<span>Cumplimiento calculado: <b>${fmtPct(c)}</b></span>${semPill(s)}<span class="hint">Umbrales: verde ≥ ${S().umbrales.verde}% · amarillo ≥ ${S().umbrales.amarillo}%</span>`; };
+  const preview = () => { const p = $('#mPreview'); if (!p) return; const o = read(); const c = Calc.cumplimiento(o); const s = o.semaforo && o.semaforo !== 'Autom\u00E1tico' ? o.semaforo : Calc.semaforoAuto(c);
+    p.innerHTML = `${icon('chart', 18)}<span>Cumplimiento calculado: <b>${fmtPct(c)}</b></span>${semPill(s)}<span class="hint">Umbrales: verde \u2265 ${S().umbrales.verde}% \u00B7 amarillo \u2265 ${S().umbrales.amarillo}%</span>`; };
   preview();
     form.addEventListener('input', preview);
   // Periodo: muestra "Trimestre" solo si es Trimestral y cambia Meta/Real a anual o trimestral
@@ -572,7 +571,7 @@ function openForm(key, id, preset = {}) {
     ...o
   });
 }
-    Auth.log(row ? 'Registro editado' : 'Registro agregado', `${sh.nombre} · ${area}`);
+    Auth.log(row ? 'Registro editado' : 'Registro agregado', `${sh.nombre} \u00B7 ${area}`);
     Store.save(); closeModal(); renderSidebar(); renderRegistro();
     toast(row ? 'Cambios guardados' : 'Registro agregado', 'ok');
   });
@@ -585,8 +584,8 @@ function dupRow(id) {
   arr.splice(i + 1, 0, { ...arr[i], id: uid() }); Store.save(); renderSidebar(); renderRegistro(); toast('Fila duplicada', 'ok');
 }
 function delRow(id) {
-  if (!confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return;
-  S().data[UI.sheet] = S().data[UI.sheet].filter(r => r.id !== id); Auth.log('Registro eliminado', `${SHEET(UI.sheet).nombre} · ${UI.area}`); Store.save(); renderSidebar(); renderRegistro(); toast('Registro eliminado');
+  if (!confirm('\u00BFEliminar este registro? Esta acci\u00F3n no se puede deshacer.')) return;
+  S().data[UI.sheet] = S().data[UI.sheet].filter(r => r.id !== id); Auth.log('Registro eliminado', `${SHEET(UI.sheet).nombre} \u00B7 ${UI.area}`); Store.save(); renderSidebar(); renderRegistro(); toast('Registro eliminado');
 }
 const saveRefl = debounce(() => { Store.save(); renderSidebar(); $$('.tab-dot', $('#view-registro')).forEach((d, i) => { const p = Calc.avanceHoja(UI.area, SHEETS[i].key); d.className = 'tab-dot ' + (p >= 1 ? 'ok' : p > 0 ? 'mid' : ''); }); }, 300);
 function onReflInput(el) {

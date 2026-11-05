@@ -1,6 +1,6 @@
 'use strict';
 /* =======================================================================
-   MÓDULO 2 · UTILIDADES
+   M\u00D3DULO 2 \u00B7 UTILIDADES
    ======================================================================= */
 const $ = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -10,19 +10,19 @@ const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '
 const nf = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2 });
 const cf = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
 const toNum = v => { if (v === '' || v == null) return null; if (typeof v === 'number') return isFinite(v) ? v : null; const n = parseFloat(String(v).replace(/[$,%\s]/g, '')); return isNaN(n) ? null : n; };
-const fmtNum = v => { const n = toNum(v); return n == null ? '—' : nf.format(n); };
-const fmtPct = v => v == null || isNaN(v) ? '—' : nf.format(Math.round(v * 10) / 10) + '%';
-const fmtCur = v => { const n = toNum(v); return n == null ? '—' : cf.format(n); };
+const fmtNum = v => { const n = toNum(v); return n == null ? '\u2014' : nf.format(n); };
+const fmtPct = v => v == null || isNaN(v) ? '\u2014' : nf.format(Math.round(v * 10) / 10) + '%';
+const fmtCur = v => { const n = toNum(v); return n == null ? '\u2014' : cf.format(n); };
 const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const hoyISO = () => isoLocal(new Date());
 const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return isoLocal(d); };
-const fmtDate = s => { if (!s) return '—'; const d = new Date(s + 'T00:00:00'); return isNaN(d) ? esc(s) : d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }); };
+const fmtDate = s => { if (!s) return '\u2014'; const d = new Date(s + 'T00:00:00'); return isNaN(d) ? esc(s) : d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }); };
 const trimestreDe = iso => { if (!iso || !/^\d{4}-\d{2}/.test(iso)) return ''; return 'T' + Math.ceil(parseInt(iso.slice(5, 7), 10) / 3); };
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
 const semClass = s => ({ Verde: 'verde', Amarillo: 'amarillo', Rojo: 'rojo' }[s] || '');
 
-/* Íconos SVG (trazos estilo línea) */
+/* \u00CDconos SVG (trazos estilo l\u00EDnea) */
 const ICONS = {
   plus: 'M12 5v14M5 12h14', x: 'M18 6 6 18M6 6l12 12', edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',
   copy: 'M9 9h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1',
@@ -36,7 +36,7 @@ const ICONS = {
   check: 'M20 6 9 17l-5-5', info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01',
   alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
   target: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
-  grid: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z', bulb: 'M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z',
+  grid: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
   feather: 'M20.2 12.2a6 6 0 0 0-8.5-8.5L5 10.5V19h8.5zM16 8 2 22M17.5 15H9', flag: 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7',
   layers: 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5', table: 'M3 3h18v18H3zM3 9h18M3 15h18M9 3v18',
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4',
@@ -66,5 +66,4 @@ function ring(pct, size = 54, stroke = 6) {
 }
 const progBar = v => { const n = Math.max(0, Math.min(100, toNum(v) || 0)); return `<div class="prog"><div class="bar"><i style="width:${n}%"></i></div><span>${Math.round(n)}%</span></div>`; };
 const semPill = s => `<span class="pill ${semClass(s)}"><i></i>${esc(s || 'Sin dato')}</span>`;
-const estatusPill = s => { const m = { 'Completada': 'verde', 'En proceso': 'azul', 'Retrasada': 'rojo', 'No iniciada': '', 'Cancelada': '' }; return `<span class="pill ${m[s] ?? ''}"><i></i>${esc(s || '—')}</span>`; };
-const prioPill = s => `<span class="pill ${({ Alta: 'rojo', Media: 'amarillo', Baja: 'verde' })[s] || ''}"><i></i>${esc(s || '—')}</span>`;
+const estatusPill = s => { const m = { 'Completada': 'verde', 'En proceso': 'azul', 'Retrasada': 'rojo', 'No iniciada': '', 'Cancelada': '' }; return `<span class="pill ${m[s] ?? ''}"><i></i>${esc(s || '\u2014')}</span>`; };

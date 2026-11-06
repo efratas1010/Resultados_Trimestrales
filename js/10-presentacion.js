@@ -1084,6 +1084,783 @@ function ajustarCierreCompleto() {
 }
 
 /* =======================================================================
+   5. SABANA DE KPIS EN PRESENTACION
+   Ajuste visual exclusivo: ocupa proporcionalmente el rectangulo util con
+   filas, tipografia y espaciado adaptativos, sin alterar datos ni columnas.
+   ======================================================================= */
+
+function kpisSlideHTML(area) {
+  /*
+     Edicion dibuja esta hoja con Calc.rows(...). Presentacion consume esa
+     misma secuencia, con la misma Unidad + Area + Periodo, y solo aplica el
+     filtro opcional de responsable sin alterar la posicion relativa.
+  */
+  const unidad = unidadFiltroActual();
+  const areaActual = (unidad?.areas || []).find(
+    registroArea => registroArea.nombre === area
+  );
+
+  const rowsEdicion = Calc.rows(
+    'kpis',
+    area,
+    unidad?.id || '',
+    areaActual?.id || '',
+    'kpis'
+  );
+
+  const rows = rowsEdicion.filter(registro => F.resp(registro));
+
+  const [, titulo, icono] = SECTIONS.find(
+    seccion => seccion[0] === 'kpis'
+  );
+
+  const tabla = rows.length
+    ? `
+      <div class="tbl-wrap">
+        <table class="tbl compact" style="table-layout:fixed">
+          <thead>
+            <tr>
+              <th class="static" style="width:30%">KPI</th>
+              <th class="static" style="width:10%">Unidad</th>
+              <th class="static num" style="width:14%;background:#dcfce7;color:#166534;border-color:#86efac">Meta Verde</th>
+              <th class="static num" style="width:14%;background:#fef9c3;color:#854d0e;border-color:#fde047">Meta Amarilla</th>
+              <th class="static num" style="width:14%;background:#fee2e2;color:#991b1b;border-color:#fca5a5">Meta Roja</th>
+              <th class="static" style="width:18%">Responsable</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map(registro => `
+                <tr>
+                  <td><b>${esc(registro.kpi)}</b></td>
+                  <td>${registro.unidad ? esc(registro.unidad) : '<span class="muted">â€”</span>'}</td>
+                  <td class="num" style="background:#f0fdf4;color:#166534"><b>${fmtNum(registro.metaVerde)}</b></td>
+                  <td class="num" style="background:#fefce8;color:#854d0e"><b>${fmtNum(registro.metaAmarilla)}</b></td>
+                  <td class="num" style="background:#fef2f2;color:#991b1b"><b>${fmtNum(registro.metaRoja)}</b></td>
+                  <td>${registro.responsable ? esc(registro.responsable) : '<span class="muted">â€”</span>'}</td>
+                </tr>
+              `)
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+    `
+    : emptyBlock('Sin KPIs con los filtros actuales.');
+
+  const htmlIdentificado = `
+    <div class="sec kpis-slide">
+      ${secTitle('kpis', titulo, icono, area)}
+      ${tabla}
+    </div>
+  `;
+
+  return `
+    <style>
+      #slides .kpis-slide {
+        --kps-gap: 12px;
+        --kps-font: 18px;
+        --kps-header-font: 12px;
+        --kps-title-font: 34px;
+        --kps-area-font: 12px;
+        --kps-pad-y: 8px;
+        --kps-pad-x: 10px;
+        --kps-header-height: 40px;
+        --kps-row-height: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--kps-gap);
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      #slides .kpis-slide,
+      #slides .kpis-slide * {
+        box-sizing: border-box;
+      }
+
+      #slides .kpis-slide .sec-title {
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 0;
+      }
+
+      #slides .kpis-slide .sec-title h3 {
+        margin: 0;
+        font-size: var(--kps-title-font);
+        line-height: 1.04;
+        letter-spacing: -.025em;
+      }
+
+      #slides .kpis-slide .sec-title .small {
+        font-size: var(--kps-area-font);
+        line-height: 1.2;
+      }
+
+      #slides .kpis-slide > .tbl-wrap {
+        flex: 1 1 auto;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      #slides .kpis-slide table.tbl.compact {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 100%;
+        margin: 0;
+        table-layout: fixed !important;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: var(--kps-font);
+      }
+
+      #slides .kpis-slide table.tbl.compact thead {
+        height: var(--kps-header-height);
+      }
+
+      #slides .kpis-slide table.tbl.compact tbody tr {
+        height: var(--kps-row-height);
+      }
+
+      #slides .kpis-slide table.tbl.compact th.static {
+        padding: calc(var(--kps-pad-y) * .78) var(--kps-pad-x) !important;
+        font-size: var(--kps-header-font) !important;
+        line-height: 1.08;
+        vertical-align: middle;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      #slides .kpis-slide table.tbl.compact td {
+        padding: var(--kps-pad-y) var(--kps-pad-x) !important;
+        font-size: var(--kps-font);
+        line-height: 1.16;
+        vertical-align: middle;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      #slides .kpis-slide table.tbl.compact td b {
+        font-size: inherit;
+        line-height: inherit;
+      }
+
+      /*
+         Las seis columnas conservan el orden y las proporciones de origen:
+         KPI, Unidad, Meta Verde, Meta Amarilla, Meta Roja y Responsable.
+         Solo se refuerza el semaforo en las tres columnas de metas.
+      */
+      #slides .kpis-slide table.tbl.compact th:nth-child(3) {
+        background: linear-gradient(135deg, #bbf7d0 0%, #dcfce7 52%, #86efac 100%) !important;
+        color: #0b5f31 !important;
+        border-color: #4ade80 !important;
+        animation: kpsPulsoVerde 6.4s ease-in-out infinite;
+      }
+
+      #slides .kpis-slide table.tbl.compact td:nth-child(3) {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+        color: #0b5f31 !important;
+        border-color: #86efac !important;
+        box-shadow: inset 0 0 18px rgba(34, 197, 94, .1);
+      }
+
+      #slides .kpis-slide table.tbl.compact th:nth-child(4) {
+        background: linear-gradient(135deg, #fef08a 0%, #fef9c3 52%, #fde047 100%) !important;
+        color: #713f12 !important;
+        border-color: #facc15 !important;
+        animation: kpsPulsoAmarillo 6.4s ease-in-out -2.15s infinite;
+      }
+
+      #slides .kpis-slide table.tbl.compact td:nth-child(4) {
+        background: linear-gradient(135deg, #fffceb 0%, #fef3c7 100%) !important;
+        color: #713f12 !important;
+        border-color: #fde047 !important;
+        box-shadow: inset 0 0 18px rgba(234, 179, 8, .1);
+      }
+
+      #slides .kpis-slide table.tbl.compact th:nth-child(5) {
+        background: linear-gradient(135deg, #fecaca 0%, #fee2e2 52%, #fca5a5 100%) !important;
+        color: #8f1d1d !important;
+        border-color: #f87171 !important;
+        animation: kpsPulsoRojo 6.4s ease-in-out -4.25s infinite;
+      }
+
+      #slides .kpis-slide table.tbl.compact td:nth-child(5) {
+        background: linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%) !important;
+        color: #8f1d1d !important;
+        border-color: #fca5a5 !important;
+        box-shadow: inset 0 0 18px rgba(239, 68, 68, .1);
+      }
+
+      #slides .kpis-slide table.tbl.compact th:nth-child(n + 3):nth-child(-n + 5) {
+        will-change: filter, box-shadow;
+      }
+
+      @keyframes kpsPulsoVerde {
+        0%, 100% {
+          filter: brightness(1) saturate(1);
+          box-shadow: inset 0 0 0 1px rgba(34, 197, 94, .16), inset 0 0 0 rgba(34, 197, 94, 0);
+        }
+        50% {
+          filter: brightness(1.045) saturate(1.08);
+          box-shadow: inset 0 0 0 1px rgba(34, 197, 94, .28), inset 0 0 24px rgba(34, 197, 94, .16);
+        }
+      }
+
+      @keyframes kpsPulsoAmarillo {
+        0%, 100% {
+          filter: brightness(1) saturate(1);
+          box-shadow: inset 0 0 0 1px rgba(234, 179, 8, .16), inset 0 0 0 rgba(234, 179, 8, 0);
+        }
+        50% {
+          filter: brightness(1.05) saturate(1.1);
+          box-shadow: inset 0 0 0 1px rgba(234, 179, 8, .3), inset 0 0 24px rgba(250, 204, 21, .18);
+        }
+      }
+
+      @keyframes kpsPulsoRojo {
+        0%, 100% {
+          filter: brightness(1) saturate(1);
+          box-shadow: inset 0 0 0 1px rgba(239, 68, 68, .16), inset 0 0 0 rgba(239, 68, 68, 0);
+        }
+        50% {
+          filter: brightness(1.045) saturate(1.08);
+          box-shadow: inset 0 0 0 1px rgba(239, 68, 68, .28), inset 0 0 24px rgba(239, 68, 68, .16);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #slides .kpis-slide table.tbl.compact th:nth-child(n + 3):nth-child(-n + 5),
+        #slides .kpis-slide table.tbl.compact td:nth-child(n + 3):nth-child(-n + 5) {
+          animation: none !important;
+          filter: none !important;
+          transition: none !important;
+        }
+      }
+
+      @media (max-width: 900px) {
+        #slides .kpis-slide .sec-title {
+          flex-direction: row;
+          align-items: center;
+        }
+      }
+    </style>
+    ${htmlIdentificado}
+  `;
+}
+
+function ajustarKpisSlide() {
+  const limitar = (valor, minimo, maximo) => {
+    return Math.min(maximo, Math.max(minimo, valor));
+  };
+
+  const aplicarAjuste = () => {
+    const stage = document.querySelector('#slides .slide-stage');
+    const slide = stage?.querySelector('.slide');
+    const contenido = slide?.querySelector('.kpis-slide');
+
+    if (!stage || !slide || !contenido) return;
+
+    const envolturaTabla = contenido.querySelector(':scope > .tbl-wrap');
+    const tabla = envolturaTabla?.querySelector('table.tbl.compact');
+    const filas = tabla?.querySelectorAll('tbody tr').length || 0;
+    const cantidad = Math.max(1, filas);
+
+    stage.style.boxSizing = 'border-box';
+    stage.style.display = 'flex';
+    stage.style.alignItems = 'stretch';
+    stage.style.justifyContent = 'center';
+    stage.style.overflow = 'hidden';
+    stage.style.padding = 'clamp(8px, 1.35vh, 16px) clamp(12px, 2vw, 32px)';
+
+    const estiloStage = getComputedStyle(stage);
+    const anchoDisponible = Math.max(
+      1,
+      stage.clientWidth -
+        parseFloat(estiloStage.paddingLeft || 0) -
+        parseFloat(estiloStage.paddingRight || 0)
+    );
+    const altoDisponible = Math.max(
+      1,
+      stage.clientHeight -
+        parseFloat(estiloStage.paddingTop || 0) -
+        parseFloat(estiloStage.paddingBottom || 0)
+    );
+
+    slide.style.animation = 'none';
+    slide.style.boxSizing = 'border-box';
+    slide.style.flex = '0 0 auto';
+    slide.style.width = `${anchoDisponible}px`;
+    slide.style.maxWidth = 'none';
+    slide.style.height = `${altoDisponible}px`;
+    slide.style.maxHeight = 'none';
+    slide.style.margin = '0';
+    slide.style.zoom = '1';
+    slide.style.transform = 'none';
+    slide.style.transformOrigin = 'top center';
+    slide.style.overflow = 'hidden';
+
+    contenido.style.width = '100%';
+    contenido.style.maxWidth = 'none';
+    contenido.style.height = '100%';
+    contenido.style.maxHeight = 'none';
+
+    if (!envolturaTabla || !tabla || !filas) return;
+
+    tabla.style.transform = 'none';
+    tabla.style.transformOrigin = 'top left';
+
+    const altoEstimadoPorFila = Math.max(1, (altoDisponible - 84) / cantidad);
+    const anchoReferencia = anchoDisponible / 6;
+    const fuenteMaxima = limitar(
+      Math.min(
+        26,
+        8 + altoEstimadoPorFila * .22,
+        8 + anchoReferencia * .085
+      ),
+      7,
+      26
+    );
+
+    const aplicarMetricas = fuente => {
+      const factorFilas = limitar(9 / cantidad, .56, 1.28);
+      const padY = limitar(fuente * .42 * factorFilas, 2.2, 12);
+      const padX = limitar(fuente * .58, 5, 16);
+      const gap = limitar(fuente * .68 * factorFilas, 4, 16);
+      const fuenteCabecera = limitar(fuente * .7, 7.4, 16);
+      const altoCabecera = limitar(
+        fuenteCabecera * 2.35 + padY * 1.2,
+        24,
+        58
+      );
+
+      contenido.style.setProperty('--kps-font', `${fuente}px`);
+      contenido.style.setProperty(
+        '--kps-header-font',
+        `${fuenteCabecera}px`
+      );
+      contenido.style.setProperty(
+        '--kps-title-font',
+        `${limitar(fuente * 1.62, 23, 42)}px`
+      );
+      contenido.style.setProperty(
+        '--kps-area-font',
+        `${limitar(fuente * .66, 9, 15)}px`
+      );
+      contenido.style.setProperty('--kps-pad-y', `${padY}px`);
+      contenido.style.setProperty('--kps-pad-x', `${padX}px`);
+      contenido.style.setProperty('--kps-gap', `${gap}px`);
+      contenido.style.setProperty(
+        '--kps-header-height',
+        `${altoCabecera}px`
+      );
+
+      const altoTabla = Math.max(1, envolturaTabla.clientHeight);
+      const altoFila = Math.max(
+        14,
+        (altoTabla - altoCabecera - 2) / cantidad
+      );
+
+      contenido.style.setProperty('--kps-row-height', `${altoFila}px`);
+    };
+
+    const cabe = () => {
+      const tolerancia = 1;
+      const elementos = [
+        contenido,
+        envolturaTabla,
+        tabla,
+        ...tabla.querySelectorAll('th, td')
+      ];
+
+      return elementos.every(elemento => {
+        return (
+          elemento.scrollHeight <= elemento.clientHeight + tolerancia &&
+          elemento.scrollWidth <= elemento.clientWidth + tolerancia
+        );
+      });
+    };
+
+    let minimo = 5.5;
+    let maximo = Math.max(minimo, fuenteMaxima);
+    let mejor = minimo;
+
+    aplicarMetricas(minimo);
+
+    for (let intento = 0; intento < 11; intento++) {
+      const candidato = (minimo + maximo) / 2;
+      aplicarMetricas(candidato);
+
+      if (cabe()) {
+        mejor = candidato;
+        minimo = candidato;
+      } else {
+        maximo = candidato;
+      }
+    }
+
+    aplicarMetricas(mejor);
+  };
+
+  aplicarAjuste();
+  requestAnimationFrame(() => {
+    aplicarAjuste();
+    requestAnimationFrame(aplicarAjuste);
+  });
+  setTimeout(aplicarAjuste, 180);
+  setTimeout(aplicarAjuste, 500);
+
+  if (!ajustarKpisSlide._escuchaResize) {
+    ajustarKpisSlide._escuchaResize = true;
+
+    window.addEventListener('resize', () => {
+      if (document.querySelector('#slides .kpis-slide')) {
+        ajustarKpisSlide();
+      }
+    });
+  }
+}
+
+/* =======================================================================
+   5. PLAN DE ACCIONES CRITICAS EN PRESENTACION
+   Ajuste visual exclusivo: elimina el criterio explicativo y aprovecha el
+   rectangulo completo con tabla, filas y tipografia adaptativas.
+   ======================================================================= */
+
+function planAccionesCriticasSlideHTML(area) {
+  const htmlBase = sectionHTML('qqc', area, true);
+
+  const htmlSinCriterio = htmlBase.replace(
+    /<p class="small muted" style="margin:0 0 10px"><b>Criterio de priorizaci\u00F3n adoptado:<\/b>[\s\S]*?<\/p>/i,
+    ''
+  );
+
+  const htmlIdentificado = htmlSinCriterio.replace(
+    '<div class="sec">',
+    '<div class="sec qqc-slide">'
+  );
+
+  return `
+    <style>
+      #slides .qqc-slide {
+        --qqc-gap: 9px;
+        --qqc-font: 13px;
+        --qqc-header-font: 9px;
+        --qqc-context-font: 11px;
+        --qqc-pad-y: 5px;
+        --qqc-pad-x: 7px;
+        --qqc-pill-font: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--qqc-gap);
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      #slides .qqc-slide,
+      #slides .qqc-slide * {
+        box-sizing: border-box;
+      }
+
+      #slides .qqc-slide .sec-title {
+        flex: 0 0 auto;
+        margin: 0;
+        padding-bottom: clamp(5px, .8vh, 10px);
+      }
+
+      #slides .qqc-slide .sec-title h3 {
+        margin: 0;
+        font-size: clamp(22px, 2.25vw, 36px);
+        line-height: 1.05;
+        letter-spacing: -.025em;
+      }
+
+      #slides .qqc-slide .sec-title .small {
+        font-size: clamp(10px, .92vw, 14px);
+        line-height: 1.2;
+      }
+
+      #slides .qqc-slide .qqc-presentacion {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--qqc-gap);
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      #slides .qqc-slide .qqc-presentacion > section {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        margin: 0 !important;
+        overflow: hidden;
+      }
+
+      #slides .qqc-slide .qqc-presentacion > section > .small {
+        flex: 0 0 auto;
+        margin: 0 0 clamp(4px, .55vh, 7px) !important;
+        font-size: var(--qqc-context-font) !important;
+        line-height: 1.2;
+      }
+
+      #slides .qqc-slide .qqc-presentacion .tbl-wrap {
+        flex: 1 1 auto;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 100%;
+        margin: 0;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: var(--qqc-font) !important;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact thead {
+        height: calc(var(--qqc-header-font) * 2.65);
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact tbody tr {
+        height: calc(100% / var(--qqc-row-count, 1));
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact th.static {
+        padding: calc(var(--qqc-pad-y) * .78) var(--qqc-pad-x) !important;
+        font-size: var(--qqc-header-font) !important;
+        line-height: 1.08;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact td {
+        padding: var(--qqc-pad-y) var(--qqc-pad-x) !important;
+        font-size: var(--qqc-font);
+        line-height: 1.16;
+        vertical-align: middle;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact td .muted,
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact td .small {
+        font-size: .86em;
+        line-height: 1.1;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact .pill,
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact .tag {
+        max-width: 100%;
+        padding: calc(var(--qqc-pad-y) * .42) calc(var(--qqc-pad-x) * .82);
+        font-size: var(--qqc-pill-font);
+        line-height: 1.05;
+        white-space: normal;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact .pill i {
+        flex: 0 0 auto;
+        width: clamp(5px, .48em, 8px);
+        height: clamp(5px, .48em, 8px);
+      }
+
+      @media (max-width: 900px) {
+        #slides .qqc-slide .sec-title {
+          flex-direction: row;
+          align-items: center;
+        }
+      }
+    </style>
+    ${htmlIdentificado}
+  `;
+}
+
+function ajustarPlanAccionesCriticas() {
+  const limitar = (valor, minimo, maximo) => {
+    return Math.min(maximo, Math.max(minimo, valor));
+  };
+
+  const aplicarAjuste = () => {
+    const stage = document.querySelector('#slides .slide-stage');
+    const slide = stage?.querySelector('.slide');
+    const contenido = slide?.querySelector('.qqc-slide');
+
+    if (!stage || !slide || !contenido) return;
+
+    stage.style.boxSizing = 'border-box';
+    stage.style.display = 'flex';
+    stage.style.alignItems = 'stretch';
+    stage.style.justifyContent = 'center';
+    stage.style.overflow = 'hidden';
+    stage.style.padding = 'clamp(6px, 1.05vh, 12px) clamp(10px, 1.65vw, 26px)';
+
+    const estiloStage = getComputedStyle(stage);
+    const anchoDisponible = Math.max(
+      1,
+      stage.clientWidth -
+        parseFloat(estiloStage.paddingLeft || 0) -
+        parseFloat(estiloStage.paddingRight || 0)
+    );
+    const altoDisponible = Math.max(
+      1,
+      stage.clientHeight -
+        parseFloat(estiloStage.paddingTop || 0) -
+        parseFloat(estiloStage.paddingBottom || 0)
+    );
+
+    slide.style.animation = 'none';
+    slide.style.boxSizing = 'border-box';
+    slide.style.flex = '0 0 auto';
+    slide.style.width = `${anchoDisponible}px`;
+    slide.style.maxWidth = 'none';
+    slide.style.height = `${altoDisponible}px`;
+    slide.style.maxHeight = 'none';
+    slide.style.margin = '0';
+    slide.style.zoom = '1';
+    slide.style.transform = 'none';
+    slide.style.transformOrigin = 'top center';
+    slide.style.overflow = 'hidden';
+
+    contenido.style.width = '100%';
+    contenido.style.maxWidth = 'none';
+    contenido.style.height = '100%';
+    contenido.style.maxHeight = 'none';
+
+    const secciones = [
+      ...contenido.querySelectorAll('.qqc-presentacion > section')
+    ];
+
+    let totalFilas = 0;
+
+    secciones.forEach(seccion => {
+      const cantidad = Math.max(
+        1,
+        seccion.querySelectorAll('tbody tr').length
+      );
+
+      totalFilas += cantidad;
+      seccion.style.setProperty('--qqc-row-count', String(cantidad));
+      seccion.style.flex = `${cantidad + 0.72} 1 0`;
+    });
+
+    totalFilas = Math.max(1, totalFilas);
+
+    const altoPorFila = altoDisponible /
+      (totalFilas + secciones.length * 1.55 + 2.8);
+    const anchoReferencia = anchoDisponible / 8;
+    const fuenteMaxima = limitar(
+      Math.min(
+        18,
+        7.8 + altoPorFila * 0.125,
+        8.4 + anchoReferencia * 0.055
+      ),
+      8,
+      18
+    );
+
+    const aplicarMetricas = fuente => {
+      const factorFilas = limitar(7 / totalFilas, 0.62, 1.18);
+      const padY = limitar(fuente * 0.39 * factorFilas, 2.2, 8.5);
+      const padX = limitar(fuente * 0.56, 4.5, 11);
+      const gap = limitar(fuente * 0.62 * factorFilas, 3.5, 12);
+
+      contenido.style.setProperty('--qqc-font', `${fuente}px`);
+      contenido.style.setProperty(
+        '--qqc-header-font',
+        `${limitar(fuente * 0.72, 7.2, 12.5)}px`
+      );
+      contenido.style.setProperty(
+        '--qqc-context-font',
+        `${limitar(fuente * 0.86, 8.5, 15)}px`
+      );
+      contenido.style.setProperty(
+        '--qqc-pill-font',
+        `${limitar(fuente * 0.74, 7.4, 12.5)}px`
+      );
+      contenido.style.setProperty('--qqc-pad-y', `${padY}px`);
+      contenido.style.setProperty('--qqc-pad-x', `${padX}px`);
+      contenido.style.setProperty('--qqc-gap', `${gap}px`);
+    };
+
+    const cabe = () => {
+      const tolerancia = 1;
+      const contenedores = [
+        contenido,
+        ...contenido.querySelectorAll(
+          '.qqc-presentacion, .qqc-presentacion > section, .tbl-wrap, table, th, td'
+        )
+      ];
+
+      return contenedores.every(elemento => {
+        return (
+          elemento.scrollHeight <= elemento.clientHeight + tolerancia &&
+          elemento.scrollWidth <= elemento.clientWidth + tolerancia
+        );
+      });
+    };
+
+    let minimo = 6.8;
+    let maximo = Math.max(minimo, fuenteMaxima);
+    let mejor = minimo;
+
+    aplicarMetricas(minimo);
+
+    for (let intento = 0; intento < 10; intento++) {
+      const candidato = (minimo + maximo) / 2;
+      aplicarMetricas(candidato);
+
+      if (cabe()) {
+        mejor = candidato;
+        minimo = candidato;
+      } else {
+        maximo = candidato;
+      }
+    }
+
+    aplicarMetricas(mejor);
+  };
+
+  aplicarAjuste();
+  requestAnimationFrame(() => {
+    aplicarAjuste();
+    requestAnimationFrame(aplicarAjuste);
+  });
+  setTimeout(aplicarAjuste, 180);
+  setTimeout(aplicarAjuste, 500);
+
+  if (!ajustarPlanAccionesCriticas._escuchaResize) {
+    ajustarPlanAccionesCriticas._escuchaResize = true;
+
+    window.addEventListener('resize', () => {
+      if (document.querySelector('#slides .qqc-slide')) {
+        aplicarAjuste();
+      }
+    });
+  }
+}
+
+/* =======================================================================
    5. REFLEXION DEL AREA EN CINCO DIAPOSITIVAS EJECUTIVAS
    Una diapositiva por campo, sin modificar la captura ni los datos.
    ======================================================================= */
@@ -1626,6 +2403,20 @@ const Slides = {
             sec: Calc.tituloPeriodoAnalisis(titulo, clave),
             html: cierreSlideHTML(area),
             after: ajustarCierreCompleto
+          });
+        } else if (clave === 'qqc') {
+          lista.push({
+            area,
+            sec: Calc.tituloPeriodoAnalisis(titulo, clave),
+            html: planAccionesCriticasSlideHTML(area),
+            after: ajustarPlanAccionesCriticas
+          });
+        } else if (clave === 'kpis') {
+          lista.push({
+            area,
+            sec: Calc.tituloPeriodoAnalisis(titulo, clave),
+            html: kpisSlideHTML(area),
+            after: ajustarKpisSlide
           });
         } else if (clave === 'reflexion') {
           const campos = camposReflexionPresentacion();

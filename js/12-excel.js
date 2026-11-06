@@ -1,8 +1,8 @@
 'use strict';
 /* =======================================================================
-   M\u00D3DULO 12 \u00B7 EXCEL (importar / exportar / plantilla) con SheetJS
+   MÓDULO 12 · EXCEL (importar / exportar / plantilla) con SheetJS
    ======================================================================= */
-function excelOk() { if (typeof XLSX === 'undefined') { toast('No se pudo cargar la librer\u00EDa de Excel. Revisa tu conexi\u00F3n a internet.', 'error'); return false; } return true; }
+function excelOk() { if (typeof XLSX === 'undefined') { toast('No se pudo cargar la librería de Excel. Revisa tu conexión a internet.', 'error'); return false; } return true; }
 function exportVal(c, r) {
   if (c.t === 'calc') { const v = c.fn(r); return typeof v === 'number' ? Math.round(v * 10) / 10 : (v ?? ''); }
   if (c.t === 'semaforo') return Calc.semaforo(r);
@@ -14,22 +14,23 @@ function exportExcel(vacia = false) {
   try {
     const wb = XLSX.utils.book_new(), ord = a => { const i = S().areas.indexOf(a); return i < 0 ? 999 : i; };
     if (vacia) {
-      const ins = [['Instrucciones de llenado'], [''], ['1. Captura una fila por registro en cada hoja. La columna "\u00C1rea" debe coincidir con la lista de \u00E1reas.'], ['2. Columnas calculadas (% Cumplimiento, Trimestre, Variaci\u00F3n) se recalculan al importar.'], ['3. Sem\u00E1foro del cierre: escribe Autom\u00E1tico, Verde, Amarillo o Rojo.'], ['4. Fechas en formato AAAA-MM-DD. % Avance de 0 a 100.'], [`5. Listas v\u00E1lidas \u2192 Estatus: ${CONFIG.LISTAS.estatus.join(', ')} | Frecuencia: ${CONFIG.LISTAS.frecuencia.join(', ')}`], ['6. OKRs: una fila por Key Result; repite el mismo Objetivo para agruparlos (2 a 5 KRs).']];
+      const ins = [['Instrucciones de llenado'], [''], ['1. Captura una fila por registro en cada hoja. La columna "Área" debe coincidir con la lista de áreas.'], ['2. No repitas Año, Tipo de periodo ni Trimestre: cada hoja usa el periodo configurado para su sección.'], [`3. Periodos vigentes: ${Calc.resumenPeriodosAnalisis()}`], ['4. Columnas calculadas (% Cumplimiento, Trimestre, Variación) se recalculan al importar.'], ['5. Semáforo del cierre: escribe Automático, Verde, Amarillo o Rojo.'], [`6. Listas válidas → Estatus: ${CONFIG.LISTAS.estatus.join(', ')} | Frecuencia: ${CONFIG.LISTAS.frecuencia.join(', ')}`], ['7. OKRs: una fila por Key Result; repite el mismo Objetivo para agruparlos (2 a 5 KRs).']];
       const ws = XLSX.utils.aoa_to_sheet(ins); ws['!cols'] = [{ wch: 120 }]; XLSX.utils.book_append_sheet(wb, ws, 'Instrucciones');
     }
     SHEETS.forEach(sh => {
-      const aoa = [sh.cols.map(c => c.l)];
-      if (!vacia) [...S().data[sh.key]].filter(r => Auth.canArea(r.area)).sort((a, b) => ord(a.area) - ord(b.area)).forEach(r => aoa.push(sh.cols.map(c => exportVal(c, r))));
+      const cols = vacia ? sh.cols.filter(c => !['anio', 'tipoPer', 'trimPer'].includes(c.k)) : sh.cols;
+      const aoa = [cols.map(c => c.l)];
+      if (!vacia) [...S().data[sh.key]].filter(r => Auth.canArea(r.area)).sort((a, b) => ord(a.area) - ord(b.area)).forEach(r => aoa.push(cols.map(c => exportVal(c, r))));
       const ws = XLSX.utils.aoa_to_sheet(aoa);
-      ws['!cols'] = sh.cols.map(c => ({ wch: c.w || (c.t === 'textarea' ? 40 : 16) }));
-      ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(aoa.length - 1, 1), c: sh.cols.length - 1 } }) };
+      ws['!cols'] = cols.map(c => ({ wch: c.w || (c.t === 'textarea' ? 40 : 16) }));
+      ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(aoa.length - 1, 1), c: cols.length - 1 } }) };
       XLSX.utils.book_append_sheet(wb, ws, sh.hoja.slice(0, 31));
     });
-    const cfg = [['Par\u00E1metro', 'Valor'], ['Empresa', S().empresa || ''], ['Umbral verde', S().umbrales.verde], ['Umbral amarillo', S().umbrales.amarillo], ...S().areas.map(a => ['\u00C1rea', a]), ...S().objetivos.map(o => ['Objetivo estrat\u00E9gico', o])];
-    if (Auth.isAdmin()) { const wc = XLSX.utils.aoa_to_sheet(cfg); wc['!cols'] = [{ wch: 22 }, { wch: 40 }]; XLSX.utils.book_append_sheet(wb, wc, 'Configuraci\u00F3n'); }
-    const suf = Auth.isAdmin() ? '' : '_' + Auth.areas().join('-').replace(/[^\w\u00C1\u00C9\u00CD\u00D3\u00DA\u00E1\u00E9\u00ED\u00F3\u00FA\u00D1\u00F1-]+/g, '');
+    const cfg = [['Parámetro', 'Valor'], ['Empresa', S().empresa || ''], ['Umbral verde', S().umbrales.verde], ['Umbral amarillo', S().umbrales.amarillo], ...S().areas.map(a => ['Área', a]), ...S().objetivos.map(o => ['Objetivo estratégico', o])];
+    if (Auth.isAdmin()) { const wc = XLSX.utils.aoa_to_sheet(cfg); wc['!cols'] = [{ wch: 22 }, { wch: 40 }]; XLSX.utils.book_append_sheet(wb, wc, 'Configuración'); }
+    const suf = Auth.isAdmin() ? '' : '_' + Auth.areas().join('-').replace(/[^\wÁÉÍÓÚáéíóúÑñ-]+/g, '');
     XLSX.writeFile(wb, vacia ? `Plantilla_Portafolio.xlsx` : `Portafolio${suf}_${hoyISO()}.xlsx`);
-    if (!vacia) Auth.log('Exportaci\u00F3n a Excel', Auth.isAdmin() ? 'Todas las \u00E1reas' : Auth.areas().join(', '));
+    if (!vacia) Auth.log('Exportación a Excel', Auth.isAdmin() ? 'Todas las áreas' : Auth.areas().join(', '));
     toast(vacia ? 'Plantilla descargada' : 'Excel exportado', 'ok');
   } catch (e) { console.error(e); toast('Error al exportar: ' + e.message, 'error'); }
 }
@@ -48,7 +49,7 @@ function cleanVal(c, v) {
     return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : s.slice(0, 10);
   }
   if (['number', 'currency', 'percent'].includes(c.t)) { let n = toNum(v); if (n == null) return ''; if (c.t === 'percent' && typeof v === 'number' && n > 0 && n <= 1) n = Math.round(n * 1000) / 10; return n; }
-  if (c.t === 'select' || c.t === 'semaforo') { const opts = c.t === 'semaforo' ? ['Autom\u00E1tico', ...CONFIG.LISTAS.semaforo] : getOpts(c); return opts.find(o => norm(o) === norm(v)) || String(v).trim(); }
+  if (c.t === 'select' || c.t === 'semaforo') { const opts = c.t === 'semaforo' ? ['Automático', ...CONFIG.LISTAS.semaforo] : getOpts(c); return opts.find(o => norm(o) === norm(v)) || String(v).trim(); }
   return String(v).trim();
 }
 async function importExcel(file) {
@@ -56,10 +57,10 @@ async function importExcel(file) {
   try {
     const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
     const found = {}; wb.SheetNames.forEach(n => { const sh = matchSheet(n); if (sh && !found[sh.key]) found[sh.key] = n; });
-    if (!Object.keys(found).length) throw new Error('no se encontraron hojas reconocibles (Cierre, Qui\u00E9n-Qu\u00E9-Cu\u00E1ndo, KPIs, Reflexi\u00F3n, OKRs).');
+    if (!Object.keys(found).length) throw new Error('no se encontraron hojas reconocibles (Cierre, Quién-Qué-Cuándo, KPIs, Reflexión, OKRs).');
     const admin = Auth.isAdmin();
-    const reemplazar = confirm(`Se encontraron ${Object.keys(found).length} hojas.\n\nAceptar = ACTUALIZAR: reemplaza la informaci\u00F3n de las \u00E1reas que vienen en el archivo (ideal para consolidar lo que env\u00EDa cada direcci\u00F3n).\nCancelar = AGREGAR: suma los registros a los existentes.`);
-    // Configuraci\u00F3n opcional (solo administrador)
+    const reemplazar = confirm(`Se encontraron ${Object.keys(found).length} hojas.\n\nAceptar = ACTUALIZAR: reemplaza la información de las áreas que vienen en el archivo (ideal para consolidar lo que envía cada dirección).\nCancelar = AGREGAR: suma los registros a los existentes.`);
+    // Configuración opcional (solo administrador)
     const cfgName = admin && wb.SheetNames.find(n => norm(n).startsWith('configuracion'));
     if (cfgName) {
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[cfgName], { header: 1, defval: '' });
@@ -76,12 +77,19 @@ async function importExcel(file) {
       const colOf = h => sh.cols.find(c => norm(c.l) === norm(h) || norm(c.k) === norm(h));
       let rows = json.map(obj => { const r = { id: uid() }; Object.entries(obj).forEach(([h, v]) => { const c = colOf(h); if (c && c.t !== 'calc') r[c.k] = cleanVal(c, v); }); return r; })
         .filter(r => sh.cols.some(c => !['area', 'calc'].includes(c.t) && r[c.k] !== '' && r[c.k] != null));
+      rows.forEach(r => {
+        const configurado = Calc.camposPeriodoAnalisis(sh.key);
+        if (!r.anio || !CONFIG.LISTAS.tipoPer.includes(r.tipoPer) || (r.tipoPer === 'Trimestral' && !CONFIG.LISTAS.trimestre.includes(r.trimPer))) {
+          Object.assign(r, configurado);
+        }
+        if (r.tipoPer === 'Anual') r.trimPer = '';
+      });
       rows.forEach(r => { r.area = r.area || UI.area; const m = S().areas.find(a => norm(a) === norm(r.area)); if (m) r.area = m; });
       rows = rows.filter(r => { const ok = admin || Auth.canArea(r.area); if (!ok) omitidas++; return ok; });
       rows.forEach(r => {
         if (!S().areas.includes(r.area)) S().areas.push(r.area);
         areasArchivo.add(r.area);
-        if (sh.key === 'cierre') { const auto = Calc.semaforoAuto(Calc.cumplimiento(r)); if (!r.semaforo || r.semaforo === auto) r.semaforo = 'Autom\u00E1tico'; }
+        if (sh.key === 'cierre') { const auto = Calc.semaforoAuto(Calc.cumplimiento(r)); if (!r.semaforo || r.semaforo === auto) r.semaforo = 'Automático'; }
         if (Object.keys(validateRow(sh, r)).length) incompletas++;
       });
       if (sh.key === 'reflexion') { const m = {}; rows.forEach(r => m[r.area] = r); rows = Object.values(m); }
@@ -92,10 +100,10 @@ async function importExcel(file) {
       else if (key === 'reflexion') { const as = new Set(rows.map(r => r.area)); S().data.reflexion = S().data.reflexion.filter(x => !as.has(x.area)).concat(rows); }
       else S().data[key].push(...rows);
     });
-    Auth.log('Importaci\u00F3n de Excel', `${total} registros \u00B7 ${[...areasArchivo].join(', ')}${omitidas ? ` \u00B7 ${omitidas} omitidos sin permiso` : ''}`);
-    if (omitidas) toast(`${omitidas} registros se omitieron porque pertenecen a \u00E1reas sin permiso.`, 'error');
+    Auth.log('Importación de Excel', `${total} registros · ${[...areasArchivo].join(', ')}${omitidas ? ` · ${omitidas} omitidos sin permiso` : ''}`);
+    if (omitidas) toast(`${omitidas} registros se omitieron porque pertenecen a áreas sin permiso.`, 'error');
     if (admin) S().sample = false; if (!Auth.areas().includes(UI.area)) UI.area = Auth.areas()[0];
     Store.save(); renderAll();
-    toast(`Importaci\u00F3n completa: ${total} registros${incompletas ? ` (${incompletas} con campos por completar)` : ''}.`, 'ok');
+    toast(`Importación completa: ${total} registros${incompletas ? ` (${incompletas} con campos por completar)` : ''}.`, 'ok');
   } catch (e) { console.error(e); toast('Error al importar: ' + e.message, 'error'); }
 }

@@ -285,11 +285,6 @@ function renderRegistro() {
         ${hojasCompletas} de
         ${SHEETS.length} hojas completas
       </span>
-
-      <span class="pill azul">
-        <i></i>
-        ${esc(Calc.textoPeriodoAnalisis(true))}
-      </span>
     </div>
 
     <div
@@ -350,10 +345,8 @@ function renderRegistro() {
   }
 }
 
-const esCampoPeriodo = c => ['anio', 'tipoPer', 'trimPer'].includes(c.k);
-
 function sheetPanel(area, sh) {
-  const head = `<div class="sheet-head"><div><h2>${esc(Calc.tituloPeriodoAnalisis(sh.nombre))}</h2><p>${esc(sh.ayuda)}</p></div>
+  const head = `<div class="sheet-head"><div><h2>${esc(sh.nombre)}</h2><p>${esc(sh.ayuda)}</p></div>
     ${sh.form ? '' : `<div style="display:flex;gap:8px;flex-wrap:wrap"><label class="search">${icon('search', 16)}<input type="search" id="regSearch" data-input="regSearch" placeholder="Buscar en esta hoja\u2026" value="${esc(UI.regQ)}" aria-label="Buscar en esta hoja"></label>
       <button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar ${sh.key === 'okrs' ? 'Key Result' : 'fila'}</button></div>`}</div>`;
   if (!sh.form) return head + `<div id="regTable"></div>`;
@@ -364,6 +357,21 @@ function sheetPanel(area, sh) {
       <textarea id="rf_${c.k}" class="input" data-input="refl" data-k="${c.k}" placeholder="Escribe aqu\u00ED\u2026">${esc(r[c.k] || '')}</textarea>
       <span class="cnt" id="cnt_${c.k}">${String(r[c.k] || '').length} caracteres</span></div>`).join('')}</div>
     <p class="hint" style="margin-top:12px">${icon('check', 14)} Se guarda autom\u00E1ticamente mientras escribes.</p>`;
+}
+
+function estiloMetaKPI(k, encabezado = false) {
+  const paletas = {
+    metaVerde: encabezado
+      ? 'background:#dcfce7;color:#166534;border-color:#86efac'
+      : 'background:#f0fdf4;color:#166534',
+    metaAmarilla: encabezado
+      ? 'background:#fef9c3;color:#854d0e;border-color:#fde047'
+      : 'background:#fefce8;color:#854d0e',
+    metaRoja: encabezado
+      ? 'background:#fee2e2;color:#991b1b;border-color:#fca5a5'
+      : 'background:#fef2f2;color:#991b1b'
+  };
+  return paletas[k] || '';
 }
 
 function drawRegTable() {
@@ -377,13 +385,16 @@ function drawRegTable() {
       <p>${esc(sh.ayuda)}</p><button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar la primera fila</button></div>`;
     return;
   }
-  const cols = sh.cols.filter(c => c.t !== 'area' && !esCampoPeriodo(c));
+  const cols = sh.cols.filter(c =>
+    c.t !== 'area' &&
+    !(sh.key === 'okrs' && ['anio', 'tipoPer', 'trimPer'].includes(c.k))
+  );
   const rowHtml = r => {
     const errs = validateRow(sh, r), nE = Object.keys(errs).length;
-    return `<tr data-id="${r.id}" class="${nE ? 'row-inc' : ''}">${cols.map(c => `<td class="cell ${c.t === 'textarea' || c.full ? 'cell-wide' : ''}" ${errs[c.k] ? `data-err="1" title="${esc(errs[c.k])}"` : ''}>${cellInput(c, r)}</td>`).join('')}
+    return `<tr data-id="${r.id}" class="${nE ? 'row-inc' : ''}">${cols.map(c => `<td class="cell ${c.t === 'textarea' || c.full ? 'cell-wide' : ''}" style="${sh.key === 'kpis' ? estiloMetaKPI(c.k) : ''}" ${errs[c.k] ? `data-err="1" title="${esc(errs[c.k])}"` : ''}>${cellInput(c, r)}</td>`).join('')}
       <td class="actions">${nE ? '<span class="tag danger" title="Faltan campos obligatorios">Incompleta</span> ' : ''}<button type="button" class="icon-btn" data-action="editRow" data-id="${r.id}" aria-label="Abrir en ventana" data-tip="Abrir en ventana">${icon('edit', 16)}</button><button type="button" class="icon-btn" data-action="dupRow" data-id="${r.id}" aria-label="Duplicar" data-tip="Duplicar">${icon('copy', 16)}</button><button type="button" class="icon-btn del" data-action="delRow" data-id="${r.id}" aria-label="Eliminar" data-tip="Eliminar">${icon('trash', 16)}</button></td></tr>`;
   };
-  box.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr>${cols.map(c => `<th class="static ${c.num || ['number', 'currency'].includes(c.t) ? 'num' : ''}" scope="col">${esc(c.l)}${c.req ? ' <span style="color:var(--rojo)">*</span>' : ''}</th>`).join('')}<th class="static" scope="col"><span style="position:absolute;left:-9999px">Acciones</span></th></tr></thead>
+  box.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr>${cols.map(c => `<th class="static ${c.num || ['number', 'currency'].includes(c.t) ? 'num' : ''}" scope="col" style="${sh.key === 'kpis' ? estiloMetaKPI(c.k, true) : ''}">${esc(c.l)}${c.req ? ' <span style="color:var(--rojo)">*</span>' : ''}</th>`).join('')}<th class="static" scope="col"><span style="position:absolute;left:-9999px">Acciones</span></th></tr></thead>
     <tbody>${rows.map(rowHtml).join('') || `<tr><td colspan="${cols.length + 1}"><div class="empty-sm">Sin coincidencias para \u201C${esc(UI.regQ)}\u201D.</div></td></tr>`}</tbody></table></div>
     <p class="hint" style="margin-top:8px">${rows.length} de ${total} registros \u00B7 Escribe directo en cada celda; se guarda al salir de ella. <span style="color:var(--rojo)">*</span> obligatorio.</p>`;
   box.onchange = e => onCellChange(e.target);
@@ -398,13 +409,13 @@ function periodoQQC(r) {
 
 function valorCierreQQC(v, unidad) {
   const n = toNum(v);
-  if (n == null) return '—';
+  if (n == null) return '\u2014';
   return nf.format(n) + (norm(unidad || '') === '%' ? '%' : '');
 }
 
 function prioridadQQCHTML(r) {
   const detalle = r.semaforoManual
-    ? `<div class="small muted">Manual${r.discrepanciaSemaforo ? `; automático: ${esc(r.semaforoAuto)}` : ''}</div>`
+    ? `<div class="small muted">Manual${r.discrepanciaSemaforo ? `; autom\u00E1tico: ${esc(r.semaforoAuto)}` : ''}</div>`
     : '';
   return semPill(r.semaforo) + detalle;
 }
@@ -412,13 +423,13 @@ function prioridadQQCHTML(r) {
 function avisoDiscrepanciasQQC(cierres) {
   const discrepancias = cierres.map(r => ({ r, info: Calc.infoSemaforo(r) })).filter(x => x.info.discrepancia);
   if (!discrepancias.length) return '';
-  return `<div class="hint" style="margin:0 0 12px"><b>Semáforos manuales conservados:</b> ${discrepancias.map(({r,info}) => `${esc(r.indicador)}: ${esc(info.vigente)} manual; el cálculo automático sería ${esc(info.automatico)} (${fmtPct(info.cumplimiento)}).`).join(' ')}</div>`;
+  return `<div class="hint" style="margin:0 0 12px"><b>Sem\u00E1foros manuales conservados:</b> ${discrepancias.map(({r,info}) => `${esc(r.indicador)}: ${esc(info.vigente)} manual; el c\u00E1lculo autom\u00E1tico ser\u00EDa ${esc(info.automatico)} (${fmtPct(info.cumplimiento)}).`).join(' ')}</div>`;
 }
 
 function inputQQC(r, k, tipo = 'text') {
   const v = r[k] ?? '';
   const base = `class="cell-in qqc-in" data-cierre-id="${esc(r.cierreId)}" data-k="${esc(k)}" aria-label="${esc(k)}"`;
-  if (k === 'estatus') return `<select ${base}><option value="">—</option>${CONFIG.LISTAS.estatus.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  if (k === 'estatus') return `<select ${base}><option value="">\u2014</option>${CONFIG.LISTAS.estatus.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   if (tipo === 'textarea') return `<textarea ${base} rows="2">${esc(v)}</textarea>`;
   return `<input type="text" ${base} value="${esc(v)}" autocomplete="off">`;
 }
@@ -432,21 +443,18 @@ function drawQQCTable(box, sourceRows) {
       .some(k => norm(r[k] || '').includes(q)));
   }
   if (!sourceRows.length) {
-    box.innerHTML = avisoDiscrepanciasQQC(cierresContexto) + `<div class="empty"><div class="em-ic">${icon('check', 32)}</div><h4>Sin indicadores priorizados</h4><p>No hay rojos ni amarillos dentro de la mitad inferior de la banda amarilla para la Unidad de negocio, Área y periodos actuales.</p></div>`;
+    box.innerHTML = avisoDiscrepanciasQQC(cierresContexto) + `<div class="empty"><div class="em-ic">${icon('check', 32)}</div><h4>Sin indicadores priorizados</h4><p>No hay rojos ni amarillos dentro de la mitad inferior de la banda amarilla para la Unidad de negocio, \u00C1rea y periodos actuales.</p></div>`;
     return;
   }
   const grupos = rows.reduce((acc, r) => {
     const k = [r.unidadNegocioId || r.unidadNegocio, r.areaId || r.area, r.anio, r.tipoPer, r.trimPer].join('|');
-    (acc[k] ||= { label: `${r.unidadNegocio || ''} · ${r.area || ''} · ${periodoQQC(r)}`, rows: [] }).rows.push(r);
+    (acc[k] ||= { label: `${r.unidadNegocio || ''} \u00B7 ${r.area || ''} \u00B7 ${periodoQQC(r)}`, rows: [] }).rows.push(r);
     return acc;
   }, {});
-  const widths = ['8%','16%','7%','7%','8%','8%','10%','13%','9%','12%','9%','13%'];
-  const headers = ['Prioridad','Indicador','Meta','Real','Variación','Cumplimiento','QUIÉN','QUÉ debe hacer','CUÁNDO','Resultado esperado','Estatus','Observaciones'];
-  const body = Object.values(grupos).map(g => `<section style="margin-bottom:18px"><h3 class="small" style="margin:0 0 8px">${esc(g.label)}</h3><div class="tbl-wrap"><table class="tbl compact qqc-table" style="min-width:1500px"><colgroup>${widths.map(w => `<col style="width:${w}">`).join('')}</colgroup><thead><tr>${headers.map((h,i) => `<th class="static ${i >= 2 && i <= 5 ? 'num' : ''}">${h}</th>`).join('')}</tr></thead><tbody>${g.rows.map(r => {
-    const fav = Calc.variacionCierreFavorable(r);
-    return `<tr data-cierre-id="${esc(r.cierreId)}"><td>${prioridadQQCHTML(r)}</td><td><b>${esc(r.indicador)}</b>${r.unidad ? `<div class="small muted">${esc(r.unidad)}</div>` : ''}</td><td class="num">${valorCierreQQC(r.meta,r.unidad)}</td><td class="num">${valorCierreQQC(r.real,r.unidad)}</td><td class="num ${fav == null ? '' : fav ? 'v-ok' : 'v-bad'}">${esc(Calc.formatearVariacionCierre(r))}</td><td class="num"><b>${fmtPct(r.cumplimiento)}</b></td><td>${inputQQC(r,'responsable')}</td><td>${inputQQC(r,'accion','textarea')}</td><td>${inputQQC(r,'cuando')}</td><td>${inputQQC(r,'resultado','textarea')}</td><td>${inputQQC(r,'estatus')}</td><td>${inputQQC(r,'observaciones','textarea')}</td></tr>`;
-  }).join('')}</tbody></table></div></section>`).join('');
-  box.innerHTML = avisoDiscrepanciasQQC(cierresContexto) + (body || `<div class="empty-sm">Sin coincidencias para “${esc(UI.regQ)}”.</div>`);
+  const widths = ['7%','14%','9%','30%','9%','13%','8%','10%'];
+  const headers = ['Prioridad','Indicador','QUI\u00C9N','QU\u00C9 debe hacer','CU\u00C1NDO','Resultado esperado','Estatus','Observaciones'];
+  const body = Object.values(grupos).map(g => `<section style="margin-bottom:18px"><h3 class="small" style="margin:0 0 8px">${esc(g.label)}</h3><div class="tbl-wrap"><table class="tbl compact qqc-table" style="min-width:1180px;table-layout:fixed"><colgroup>${widths.map(w => `<col style="width:${w}">`).join('')}</colgroup><thead><tr>${headers.map(h => `<th class="static">${h}</th>`).join('')}</tr></thead><tbody>${g.rows.map(r => `<tr data-cierre-id="${esc(r.cierreId)}"><td>${prioridadQQCHTML(r)}</td><td><b>${esc(r.indicador)}</b>${r.unidad ? `<div class="small muted">${esc(r.unidad)}</div>` : ''}</td><td>${inputQQC(r,'responsable')}</td><td style="white-space:normal;overflow-wrap:anywhere">${inputQQC(r,'accion','textarea')}</td><td>${inputQQC(r,'cuando')}</td><td>${inputQQC(r,'resultado','textarea')}</td><td>${inputQQC(r,'estatus')}</td><td>${inputQQC(r,'observaciones','textarea')}</td></tr>`).join('')}</tbody></table></div></section>`).join('');
+  box.innerHTML = avisoDiscrepanciasQQC(cierresContexto) + (body || `<div class="empty-sm">Sin coincidencias para \u201C${esc(UI.regQ)}\u201D.</div>`);
   box.onchange = e => onQQCCellChange(e.target);
   box.oninput = e => {
     if (e.target.matches?.('.qqc-in')) setSaveStatus('saving');
@@ -457,7 +465,21 @@ function onQQCCellChange(el) {
   if (!el.matches?.('.qqc-in')) return;
   const derivada = Calc.qqcRows(UI.area, UI.unidadId, UI.areaId).find(r => r.cierreId === el.dataset.cierreId);
   if (!derivada) return;
-  const { accion } = materializarAccionQQC(derivada);
+  let accion = S().data.qqc.find(r => r.cierreId === derivada.cierreId);
+  if (!accion && !derivada._virtual) accion = S().data.qqc.find(r => r.id === derivada.id);
+  if (!accion) {
+    accion = {
+      id: uid(), cierreId: derivada.cierreId,
+      unidadNegocioId: derivada.unidadNegocioId, unidadNegocio: derivada.unidadNegocio,
+      areaId: derivada.areaId, area: derivada.area,
+      anio: derivada.anio, tipoPer: derivada.tipoPer, trimPer: derivada.trimPer,
+      semaforo: derivada.semaforo, indicador: derivada.indicador,
+      responsable: '', accion: '', cuando: '', resultado: '', estatus: '', observaciones: ''
+    };
+    S().data.qqc.push(accion);
+  }
+  accion.semaforo = derivada.semaforo;
+  accion.indicador = derivada.indicador;
   accion[el.dataset.k] = el.value.trim();
   Store.save();
   setTimeout(() => {
@@ -476,7 +498,7 @@ function cellInput(c, r) {
     return `<select ${base} ${dis}><option value="">\u2014</option>${getOpts(c).map(o => `<option ${String(o) === String(v) ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   }
   if (c.t === 'date') return `<input type="date" ${base} value="${esc(v)}">`;
-  if (['number', 'currency', 'percent'].includes(c.t)) return `<input type="text" inputmode="decimal" ${base} value="${esc(v)}" style="text-align:right" placeholder="${c.t === 'percent' ? '0\u2013100' : '0'}">`;
+  if (['number', 'currency', 'percent'].includes(c.t)) return `<input type="text" inputmode="decimal" ${base} value="${esc(v)}" style="text-align:right;${estiloMetaKPI(c.k)}" placeholder="${c.t === 'percent' ? '0\u2013100' : '0'}">`;
   if (c.t === 'textarea') return `<textarea ${base} rows="2">${esc(v)}</textarea>`;
   return `<input type="text" ${base} value="${esc(v)}">`;
 }
@@ -504,80 +526,9 @@ function onCellChange(el) {
   }, 0);
 }
 
-/*
- * Crea o vincula la fila persistente del plan a partir del Cierre.
- * Los campos de captura permanecen vac\u00EDos: no se asignan responsables,
- * acciones ni plazos de forma autom\u00E1tica.
- */
-function materializarAccionQQC(derivada) {
-  let accion = S().data.qqc.find(r => r.cierreId === derivada.cierreId);
-  if (!accion && !derivada._virtual) accion = S().data.qqc.find(r => r.id === derivada.id);
-
-  const creada = !accion;
-  if (!accion) {
-    accion = {
-      id: uid(),
-      responsable: '', accion: '', cuando: '', resultado: '', estatus: '', observaciones: ''
-    };
-    S().data.qqc.push(accion);
-  }
-
-  const fuente = {
-    cierreId: derivada.cierreId,
-    unidadNegocioId: derivada.unidadNegocioId,
-    unidadNegocio: derivada.unidadNegocio,
-    areaId: derivada.areaId,
-    area: derivada.area,
-    anio: derivada.anio,
-    tipoPer: derivada.tipoPer,
-    trimPer: derivada.trimPer,
-    semaforo: derivada.semaforo,
-    indicador: derivada.indicador
-  };
-  const cambiada = Object.entries(fuente).some(([k, v]) => accion[k] !== v);
-  Object.assign(accion, fuente);
-  return { accion, creada, cambiada };
-}
-
-/*
- * El bot\u00F3n de QQC no debe crear una fila hu\u00E9rfana. Materializa exactamente
- * los indicadores prioritarios que Calc.qqcRows deriva desde Cierre.
- */
-function cargarIndicadoresCriticosQQC() {
-  const unidad = unidadEdicionActual();
-  const areaObj = areaEdicionActual();
-  if (!unidad || !areaObj) {
-    toast('Selecciona primero la unidad de negocio y el \u00E1rea.', 'error');
-    return;
-  }
-
-  UI.regQ = '';
-  const derivadas = Calc.qqcRows(areaObj.nombre, unidad.id, areaObj.id);
-  if (!derivadas.length) {
-    drawRegTable();
-    toast('No hay indicadores cr\u00EDticos que cargar desde Cierre para esta unidad y \u00E1rea.');
-    return;
-  }
-
-  let cambios = 0;
-  derivadas.forEach(derivada => {
-    const resultado = materializarAccionQQC(derivada);
-    if (resultado.creada || resultado.cambiada) cambios++;
-  });
-
-  if (cambios) {
-    Auth.log('Indicadores cr\u00EDticos cargados', `${unidad.nombre} \u00B7 ${areaObj.nombre} \u00B7 ${derivadas.length}`);
-    Store.save();
-  }
-  renderRegistro();
-  setTimeout(() => $('#regTable .qqc-in')?.focus(), 0);
-  toast(`${derivadas.length} indicador${derivadas.length === 1 ? '' : 'es'} cr\u00EDtico${derivadas.length === 1 ? '' : 's'} cargado${derivadas.length === 1 ? '' : 's'} desde Cierre.`, 'ok');
-}
-
-/* Agrega una fila directamente en la tabla o carga el origen de QQC */
+/* Agrega una fila vac\u00EDa directamente en la tabla */
 function addInlineRow(preset = {}) {
   const sh = SHEET(UI.sheet); if (!sh || sh.form) return;
-  if (sh.key === 'qqc') return cargarIndicadoresCriticosQQC();
 const unidad = unidadEdicionActual();
 const areaObj = areaEdicionActual();
 
@@ -597,9 +548,9 @@ const r = {
   areaId: areaObj.id,
   area: areaObj.nombre,
 
+  ...(['kpis', 'okrs'].includes(sh.key) ? Calc.camposPeriodoAnalisis(sh.key) : {}),
   ...defaults(sh),
-  ...preset,
-  ...Calc.camposPeriodoAnalisis()
+  ...preset
 };
   S().data[sh.key].push(r); UI.regQ = '';
   Auth.log('Registro agregado', `${sh.nombre} \u00B7 ${UI.area}`);
@@ -657,30 +608,31 @@ function fieldHtml(c, v, area, key) {
   const id = 'f_' + c.k, req = c.req ? ' <span class="req" aria-hidden="true">*</span>' : '';
   const lab = `<label for="${id}">${esc(c.l)}${req}${c.help ? ' ' + tip(c.help) : ''}</label>`;
   const common = `id="${id}" name="${c.k}" class="input" ${c.req ? 'aria-required="true"' : ''} aria-describedby="e_${c.k}"`;
+  const metaKPI = key === 'kpis' ? estiloMetaKPI(c.k) : '';
   let input;
   if (c.t === 'textarea') input = `<textarea ${common} rows="3">${esc(v ?? '')}</textarea>`;
   else if (c.t === 'select' || c.t === 'semaforo') {
     const opts = c.t === 'semaforo' ? ['Autom\u00E1tico', ...CONFIG.LISTAS.semaforo] : getOpts(c);
     input = `<select ${common}>${c.t === 'select' ? '<option value="">Selecciona\u2026</option>' : ''}${opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   } else if (c.t === 'date') input = `<input type="date" ${common} value="${esc(v ?? '')}">`;
-  else if (['number', 'currency', 'percent'].includes(c.t)) input = `<input type="text" inputmode="decimal" ${common} value="${esc(v ?? '')}" placeholder="${c.t === 'percent' ? '0 \u2013 100' : c.t === 'currency' ? '$0' : '0'}">`;
+  else if (['number', 'currency', 'percent'].includes(c.t)) input = `<input type="text" inputmode="decimal" ${common} value="${esc(v ?? '')}" style="${metaKPI}" placeholder="${c.t === 'percent' ? '0 \u2013 100' : c.t === 'currency' ? '$0' : '0'}">`;
   else {
     let dl = '';
     if (c.list) { const vals = [...new Set(S().data[key].filter(r => c.k === 'responsable' || r.area === area).map(r => r[c.k]).filter(Boolean))]; if (c.k === 'responsable') SHEETS.forEach(s => S().data[s.key].forEach(r => r.responsable && vals.push(r.responsable))); dl = `<datalist id="dl_${c.k}">${[...new Set(vals)].map(x => `<option value="${esc(x)}">`).join('')}</datalist>`; }
     input = `<input type="text" ${common} value="${esc(v ?? '')}" ${c.list ? `list="dl_${c.k}"` : ''} autocomplete="off">${dl}`;
   }
-  return `<div class="field ${c.full || c.t === 'textarea' ? 'full' : ''}">${lab}${input}<span class="err" id="e_${c.k}"></span></div>`;
+  return `<div class="field ${c.full || c.t === 'textarea' ? 'full' : ''}" style="${metaKPI ? `${metaKPI};border:1px solid;padding:12px;border-radius:12px` : ''}">${lab}${input}<span class="err" id="e_${c.k}"></span></div>`;
 }
 
 let lastFocus = null;
 function openForm(key, id, preset = {}) {
   const sh = SHEET(key), area = UI.area, row = id ? S().data[key].find(r => r.id === id) : null;
-  const vals = { ...defaults(sh), ...preset, ...(row || {}) };
-  const fields = sh.cols.filter(c => c.t !== 'area' && c.t !== 'calc' && !esCampoPeriodo(c));
+  const vals = { ...defaults(sh), ...(key === 'kpis' ? Calc.camposPeriodoAnalisis('kpis') : {}), ...preset, ...(row || {}) };
+  const fields = sh.cols.filter(c => c.t !== 'area' && c.t !== 'calc');
   lastFocus = document.activeElement;
   $('#modalRoot').innerHTML = `<div class="modal-bg" data-action="modalBg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <form id="mForm" novalidate>
-      <header><div><h2 id="mTitle">${row ? 'Editar' : 'Agregar'} \u00B7 ${esc(Calc.tituloPeriodoAnalisis(sh.nombre))}</h2><span class="small muted">${esc(area)}</span></div>
+      <header><div><h2 id="mTitle">${row ? 'Editar' : 'Agregar'} \u00B7 ${esc(sh.nombre)}</h2><span class="small muted">${esc(area)}</span></div>
         <button type="button" class="icon-btn" data-action="closeModal" aria-label="Cerrar" style="margin-left:auto">${icon('x')}</button></header>
       <div class="body">${key === 'cierre' ? '<div class="preview" id="mPreview"></div>' : ''}${fields.map(c => fieldHtml(c, vals[c.k], area, key)).join('')}</div>
       <footer><span class="hint" style="margin-right:auto">Los campos con <span style="color:var(--rojo)">*</span> son obligatorios</span>
@@ -701,7 +653,7 @@ function openForm(key, id, preset = {}) {
   syncPer(); form.addEventListener('change', syncPer);
   form.addEventListener('submit', ev => {
     ev.preventDefault();
-    const o = { ...read(), ...Calc.camposPeriodoAnalisis() };
+    const o = read();
     fields.forEach(c => { if (['number', 'currency', 'percent'].includes(c.t) && o[c.k] !== '' && toNum(o[c.k]) != null) o[c.k] = toNum(o[c.k]); });
        if (o.tipoPer === 'Anual') o.trimPer = '';
     const errs = validateRow(sh, o);
@@ -725,6 +677,7 @@ function openForm(key, id, preset = {}) {
     areaId: UI.areaId,
     area: areaEdicionActual()?.nombre || area,
 
+    ...(key === 'kpis' ? Calc.camposPeriodoAnalisis('kpis') : {}),
     ...o
   });
 }
@@ -754,9 +707,7 @@ function onReflInput(el) {
   unidadNegocio: unidadEdicionActual()?.nombre || '',
 
   areaId: UI.areaId,
-  area: areaEdicionActual()?.nombre || UI.area,
-
-  ...Calc.camposPeriodoAnalisis()
+  area: areaEdicionActual()?.nombre || UI.area
 }; S().data.reflexion.push(r); }
   r[el.dataset.k] = el.value; $('#cnt_' + el.dataset.k).textContent = el.value.length + ' caracteres';
   setSaveStatus('saving'); saveRefl();

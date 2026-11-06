@@ -45,8 +45,8 @@ const F = {
     );
   },
 
-  periodo(r) {
-    return Calc.coincidePeriodoAnalisis(r);
+  periodo(r, seccion = 'cierre') {
+    return Calc.coincidePeriodoAnalisis(r, seccion);
   },
 
   cierre() {
@@ -54,7 +54,7 @@ const F = {
 
     return S().data.cierre.filter(r =>
       this.a(r) &&
-      this.periodo(r) &&
+      this.periodo(r, 'cierre') &&
       (
         !f.semaforo ||
         Calc.semaforo(r) === f.semaforo
@@ -67,7 +67,7 @@ const F = {
 
     return Calc.qqcRows(null, '', '').filter(r =>
       this.a(r) &&
-      this.periodo(r) &&
+      this.periodo(r, 'qqc') &&
       this.resp(r) &&
       (
         !f.semaforo ||
@@ -83,7 +83,7 @@ const F = {
   kpis() {
     return S().data.kpis.filter(r =>
       this.a(r) &&
-      this.periodo(r) &&
+      this.periodo(r, 'kpis') &&
       this.resp(r)
     );
   },
@@ -91,15 +91,24 @@ const F = {
   reflexion() {
     return S().data.reflexion.filter(r =>
       this.a(r) &&
-      this.periodo(r)
+      this.periodo(r, 'reflexion')
     );
   },
 
   okrs() {
     return S().data.okrs.filter(r =>
       this.a(r) &&
-      this.periodo(r) &&
+      this.periodo(r, 'okrs') &&
       this.resp(r)
+    );
+  },
+
+  cierresQQC() {
+    const f = UI.filters;
+    return S().data.cierre.filter(r =>
+      this.a(r) &&
+      this.periodo(r, 'qqc') &&
+      (!f.semaforo || Calc.semaforo(r) === f.semaforo)
     );
   },
 

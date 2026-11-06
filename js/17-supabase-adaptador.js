@@ -8,7 +8,7 @@ const Cloud = {
   specs: {
     cierre: {table:'cierre_resultados', map:{indicador:'indicador',unidad:'unidad_medida',sentido:'sentido',meta:'meta',real:'real',semaforo:'semaforo_forzado',comentarios:'comentarios'}, required:['indicador','meta','real'], nums:['meta','real']},
     qqc: {table:'quien_que_cuando',map:{cierreId:'cierre_resultado_id',semaforo:'semaforo_origen',indicador:'indicador_problema',accion:'accion',responsable:'responsable',cuando:'cuando_texto',resultado:'resultado_esperado',estatus:'estatus',observaciones:'observaciones'},required:['cierreId','semaforo','indicador'],nullable:['accion','responsable','cuando','resultado','estatus','observaciones'],nums:[]},
-    kpis: {table:'kpis',map:{kpi:'kpi',unidad:'unidad_medida',base:'linea_base',meta:'meta',frecuencia:'frecuencia',formula:'formula_fuente',responsable:'responsable',t1:'meta_t1',t2:'meta_t2',t3:'meta_t3',t4:'meta_t4'},required:['kpi','meta','frecuencia','responsable'],nums:['base','meta','t1','t2','t3','t4']},
+    kpis: {table:'kpis',map:{kpi:'kpi',unidad:'unidad_medida',metaVerde:'meta_verde',metaAmarilla:'meta_amarilla',metaRoja:'meta_roja',responsable:'responsable'},required:['kpi','responsable'],nums:['metaVerde','metaAmarilla','metaRoja']},
     reflexion: {table:'reflexiones',map:{logros:'logros',aprendizajes:'aprendizajes',obstaculos:'obstaculos',distinto:'que_hariamos_distinto',apoyos:'apoyos_necesarios'},required:[],nums:[]},
     okrs: {table:'okrs',map:{objetivo:'objetivo',kr:'key_result',base:'linea_base',meta:'meta',unidad:'unidad_medida',responsable:'responsable'},required:['objetivo','kr','meta','responsable','alineacion'],nums:['base','meta']}
   },
@@ -47,7 +47,32 @@ const Cloud = {
     const tables=['configuracion_plataforma','umbrales_semaforo','unidades_negocio','areas','periodos','objetivos_estrategicos','perfiles','accesos_usuario_area',...Object.values(this.specs).map(s=>s.table)];
     const values=await Promise.all(tables.map(t=>this.all(t)));
     const db=Object.fromEntries(tables.map((t,i)=>[t,values[i]]));
-    const state=Store.empty(); state.sample=false; state.empresa=db.configuracion_plataforma[0]?.empresa||CONFIG.EMPRESA;
+    const state=Store.empty();
+    const cfg=db.configuracion_plataforma[0]||{};
+    state.sample=false; state.empresa=cfg.empresa||CONFIG.EMPRESA;
+    const tipoPeriodo=cfg.periodo_analisis_tipo==='Trimestral'?'Trimestral':'Anual';
+    const periodoLegacy={
+      anio:String(cfg.periodo_analisis_anio??cfg.anio_planeacion??CONFIG.PERIODO_ANALISIS.anio),
+      tipoPer:tipoPeriodo,
+      trimPer:tipoPeriodo==='Trimestral'?String(cfg.periodo_analisis_trimestre||''):'',
+      etiqueta:String(cfg.periodo_analisis_etiqueta||'')
+    };
+    let periodosConfigurados=cfg.periodos_analisis_seccion||{};
+    if(typeof periodosConfigurados==='string'){
+      try{periodosConfigurados=JSON.parse(periodosConfigurados);}catch(_){periodosConfigurados={};}
+    }
+    state.periodoAnalisis={...periodoLegacy};
+    state.periodosAnalisis=Object.fromEntries(SHEETS.map(sh=>{
+      const base=CONFIG.PERIODOS_ANALISIS?.[sh.key]||CONFIG.PERIODO_ANALISIS||{};
+      const raw=periodosConfigurados?.[sh.key]||periodoLegacy;
+      const tipo=raw.tipoPer==='Trimestral'?'Trimestral':'Anual';
+      return [sh.key,{
+        anio:String(raw.anio||periodoLegacy.anio||base.anio||''),
+        tipoPer:tipo,
+        trimPer:tipo==='Trimestral'?String(raw.trimPer||''):'',
+        etiqueta:String(raw.etiqueta||'')
+      }];
+    }));
     state.umbrales={verde:Number(db.umbrales_semaforo[0]?.verde_desde??95),amarillo:Number(db.umbrales_semaforo[0]?.amarillo_desde??85)};
     this.periods=db.periodos; this.objectives=db.objetivos_estrategicos;
     state.objetivos=this.objectives.filter(o=>o.activo).sort((a,b)=>a.orden-b.orden).map(o=>o.nombre);
@@ -125,7 +150,17 @@ const Cloud = {
         add('unidades_negocio',{id:u.id,codigo:old?.codigo||'u-'+u.id,nombre:u.nombre,orden:i,activa:true});
         u.areas.forEach((a,j)=>{this.uuid(a);areas.add(a.id);add('areas',{id:a.id,unidad_negocio_id:u.id,nombre:a.nombre,orden:j,activa:true});});
       });
-      add('configuracion_plataforma',{id:true,empresa:S().empresa});
+      const periodos=Object.fromEntries(SHEETS.map(sh=>[sh.key,Calc.periodoAnalisis(sh.key)]));
+      const periodo=periodos.cierre;
+      add('configuracion_plataforma',{
+        id:true,
+        empresa:S().empresa,
+        periodo_analisis_anio:Number(periodo.anio),
+        periodo_analisis_tipo:periodo.tipoPer,
+        periodo_analisis_trimestre:periodo.tipoPer==='Trimestral'?periodo.trimPer:null,
+        periodo_analisis_etiqueta:periodo.etiqueta||null,
+        periodos_analisis_seccion:periodos
+      });
       add('umbrales_semaforo',{id:true,verde_desde:Number(S().umbrales.verde),amarillo_desde:Number(S().umbrales.amarillo)});
       S().objetivos.forEach((name,i)=>{
         let o=this.objectives.find(o=>o.nombre===name);
@@ -257,36 +292,25 @@ openUserForm=function(id){
 };
 window.addEventListener('beforeunload',e=>{if(Cloud.pending||Cloud.saving||Cloud.draftCount){e.preventDefault();e.returnValue='';}});
 
-// Reflexi\u00F3n requiere un periodo expl\u00EDcito; no se inventa un a\u00F1o por defecto.
-const panelOriginal=sheetPanel;
-sheetPanel=function(area,sh){
-  if(sh.key!=='reflexion')return panelOriginal(area,sh);
-  const p=Cloud.periods.find(p=>p.id===UI.reflPeriodId);
-  const rows=S().data.reflexion.filter(r=>r.areaId===UI.areaId&&r.unidadNegocioId===UI.unidadId&&String(r.anio)===String(p?.anio)&&r.tipoPer===p?.tipo&&(r.trimPer||'')===(p?.trimestre||''));
-  const r=rows[0]||{};
-  return `<div class="sheet-head"><h2>Reflexi\u00F3n del \u00E1rea</h2></div><div class="field"><label for="reflPeriodo">Periodo de esta reflexi\u00F3n</label><select id="reflPeriodo" class="input" data-change="cloudReflectionPeriod"><option value="">Selecciona periodo\u2026</option>${[...Cloud.periods].sort((a,b)=>b.anio-a.anio||a.tipo.localeCompare(b.tipo)||(a.trimestre||'').localeCompare(b.trimestre||'')).map(x=>`<option value="${x.id}" ${p?.id===x.id?'selected':''}>${x.tipo==='Anual'?'Anual':x.trimestre} ${x.anio}</option>`).join('')}</select></div>${!p?'<p>Selecciona un periodo antes de escribir.</p>':`<div class="refl-grid">${sh.cols.filter(c=>c.t!=='area').map(c=>`<div class="refl-card"><label for="rf_${c.k}"><b>${esc(c.l)}</b></label><textarea id="rf_${c.k}" class="input" data-input="refl" data-k="${c.k}">${esc(r[c.k]||'')}</textarea><span id="cnt_${c.k}">${String(r[c.k]||'').length} caracteres</span></div>`).join('')}</div>`}`;
-};
-Changes.cloudReflectionPeriod=el=>{UI.reflPeriodId=el.value;renderRegistro();};
-onReflInput=function(el){
-  const p=Cloud.periods.find(p=>p.id===UI.reflPeriodId);if(!p)return toast('Selecciona periodo.','error');
-  let r=S().data.reflexion.find(r=>r.areaId===UI.areaId&&r.unidadNegocioId===UI.unidadId&&String(r.anio)===String(p.anio)&&r.tipoPer===p.tipo&&(r.trimPer||'')===(p.trimestre||''));
-  if(!r){r={id:uid(),areaId:UI.areaId,unidadNegocioId:UI.unidadId,area:areaEdicionActual()?.nombre||'',unidadNegocio:unidadEdicionActual()?.nombre||'',anio:String(p.anio),tipoPer:p.tipo,trimPer:p.trimestre||''};S().data.reflexion.push(r);}
-  r[el.dataset.k]=el.value;$('#cnt_'+el.dataset.k).textContent=el.value.length+' caracteres';Store.save();
-};
+// Reflexi\u00F3n usa su propio periodo. La l\u00F3gica de 07-edicion crea la fila
+// con Calc.camposPeriodoAnalisis('reflexion').
 
 // Excel: conserva el contexto expl\u00EDcito y no borra bloques ausentes del archivo.
 exportExcel=function(vacia=false){
   if(!excelOk())return;
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-    ['Plantilla Supabase: Unidad de negocio + \u00C1rea + A\u00F1o + Tipo de periodo + Trimestre del periodo'],
+    [`Plantilla Supabase. Periodos por secciÃ³n: ${Calc.resumenPeriodosAnalisis()}`],
     ['No cambies los encabezados. ID vac\u00EDo crea una fila; ID existente actualiza esa misma fila.'],
+    ['En filas nuevas no se repiten A\u00F1o, Tipo de periodo ni Trimestre; la aplicaci\u00F3n usa la configuraci\u00F3n de cada secciÃ³n.'],
     ['Las filas ausentes NO se eliminan. Fechas AAAA-MM-DD. No se importan configuraci\u00F3n ni usuarios.'],
     ['Reflexi\u00F3n: solo una fila por Unidad + \u00C1rea + Periodo. Completa todos los campos obligatorios.']
   ]),'Instrucciones');
   for(const sh of SHEETS){
     const cols=sh.cols.filter(c=>!['area','anio','tipoPer','trimPer'].includes(c.k)&&c.t!=='calc');
-    const headers=['ID','Unidad de negocio','\u00C1rea','A\u00F1o','Tipo de periodo','Trimestre del periodo',...cols.map(c=>c.l)];
+    const headers=vacia
+      ? ['ID','Unidad de negocio','\u00C1rea',...cols.map(c=>c.l)]
+      : ['ID','Unidad de negocio','\u00C1rea','A\u00F1o','Tipo de periodo','Trimestre del periodo',...cols.map(c=>c.l)];
     const rows=vacia?[]:S().data[sh.key].filter(r=>Auth.canAccess(r.unidadNegocioId,r.areaId)).map(r=>[r.id,r.unidadNegocio,r.area,r.anio,r.tipoPer,r.trimPer,...cols.map(c=>exportVal(c,r))]);
     const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws['!cols']=headers.map(()=>({wch:24}));XLSX.utils.book_append_sheet(wb,ws,sh.hoja);
   }
@@ -306,7 +330,10 @@ importExcel=async function(file){
         const u=S().unidadesNegocio.find(u=>norm(u.nombre)===norm(src['Unidad de negocio']));
         const a=u?.areas.find(a=>norm(a.nombre)===norm(src['\u00C1rea']));
         if(!u||!a||!Auth.canAccess(u.id,a.id))throw new Error(context+': Unidad/\u00C1rea no v\u00E1lida o sin permiso.');
-        const r={id:String(src.ID||'').trim()||uid(),unidadNegocioId:u.id,unidadNegocio:u.nombre,areaId:a.id,area:a.nombre,anio:String(src['A\u00F1o']||''),tipoPer:src['Tipo de periodo'],trimPer:src['Trimestre del periodo']||''};
+        const id=String(src.ID||'').trim()||uid();
+        const old=S().data[sh.key].find(x=>x.id===id);
+        const periodo=old?{anio:old.anio,tipoPer:old.tipoPer,trimPer:old.trimPer||''}:Calc.camposPeriodoAnalisis(sh.key);
+        const r={id,unidadNegocioId:u.id,unidadNegocio:u.nombre,areaId:a.id,area:a.nombre,...periodo};
         if(!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(r.id))throw new Error(context+': ID no v\u00E1lido.');
         for(const c of sh.cols){
           if(['area','anio','tipoPer','trimPer'].includes(c.k)||c.t==='calc')continue;
@@ -314,13 +341,12 @@ importExcel=async function(file){
           if(c.t==='date'&&typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);v=`${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
           r[c.k]=v;
         }
-        const old=S().data[sh.key].find(x=>x.id===r.id);
         if(old&&(old.areaId!==r.areaId||old.unidadNegocioId!==r.unidadNegocioId))throw new Error(context+': no se permite cambiar el contexto de un ID existente.');
         if(!old&&src.ID)throw new Error(context+': ID desconocido. D\u00E9jalo vac\u00EDo para crear una fila.');
         const unique=sh.key+':'+r.id;if(seen.has(unique))throw new Error(context+': ID repetido en el archivo.');seen.add(unique);
         if(sh.key==='qqc'){
           const cierre=S().data.cierre.find(c=>c.areaId===r.areaId&&String(c.anio)===String(r.anio)&&c.tipoPer===r.tipoPer&&(c.trimPer||'')===(r.trimPer||'')&&norm(c.indicador)===norm(src.Indicador||''));
-          if(!cierre)throw new Error(context+': el Indicador no coincide con un registro del Cierre en la misma Unidad, Área y periodo.');
+          if(!cierre)throw new Error(context+': el Indicador no coincide con un registro del Cierre en la misma Unidad, Ãrea y periodo.');
           r.cierreId=cierre.id;r.semaforo=Calc.semaforo(cierre);r.indicador=cierre.indicador;
         }
         if(!Cloud.serialize(sh.key,r))throw new Error(context+': faltan campos obligatorios o el periodo no existe.');

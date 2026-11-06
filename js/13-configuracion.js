@@ -7,7 +7,6 @@
 
 function renderConfig() {
   const st = S();
-  const periodo = Calc.periodoAnalisis();
 
   if (!Array.isArray(st.unidadesNegocio)) {
     st.unidadesNegocio = [];
@@ -216,51 +215,58 @@ function renderConfig() {
       <div class="banner" style="margin:14px 0 0">${icon('info', 16)}<span><b>No se eliminan ni duplican registros.</b> La migración únicamente agrega los identificadores de Unidad de negocio y Área destino.</span></div>
     </div>` : `<div class="card"><h3>Migración de información existente</h3><div class="empty-sm">${icon('check', 18)} No hay registros pendientes de migración.</div></div>`;
 
-  $('#view-config').innerHTML = `
-    <div class="grid fade-in">
-
+  const periodosHTML = SHEETS.map(hoja => {
+    const periodo = Calc.periodoAnalisis(hoja.key);
+    const prefijo = `pa_${hoja.key}`;
+    return `
       <div class="card">
-        <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px">
           <div>
-            <h3>Periodo de análisis</h3>
-            <p class="small muted" style="margin:4px 0 0;max-width:780px">
-              Contexto central para Edición, Dashboard y Presentación. La etiqueta de corte es descriptiva; la llave de los datos sigue siendo Unidad de negocio → Área → Año → Tipo de periodo → Trimestre.
-            </p>
+            <span class="small muted" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Sección</span>
+            <h3 style="margin-top:4px">${esc(hoja.nombre)}</h3>
           </div>
-          <span class="pill azul"><i></i>${esc(Calc.textoPeriodoAnalisis(true))}</span>
+          <span class="pill azul"><i></i>${esc(Calc.textoPeriodoAnalisis(hoja.key, true))}</span>
         </div>
-
-        <form id="periodoAnalisisForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));align-items:end">
+        <form data-form="periodoAnalisisSeccion" data-seccion="${esc(hoja.key)}" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end">
           <div class="field">
-            <label for="paAnio">Año</label>
-            <select id="paAnio" name="anio" class="input" required>
+            <label for="${prefijo}_anio">Año</label>
+            <select id="${prefijo}_anio" name="anio" class="input" required>
               ${CONFIG.LISTAS.anios.map(anio => `<option value="${esc(anio)}" ${String(anio) === periodo.anio ? 'selected' : ''}>${esc(anio)}</option>`).join('')}
             </select>
           </div>
-
           <div class="field">
-            <label for="paTipo">Tipo de periodo</label>
-            <select id="paTipo" name="tipoPer" class="input" data-change="periodoTipo" required>
+            <label for="${prefijo}_tipo">Tipo de periodo</label>
+            <select id="${prefijo}_tipo" name="tipoPer" class="input" data-change="periodoTipo" required>
               ${CONFIG.LISTAS.tipoPer.map(tipo => `<option value="${esc(tipo)}" ${tipo === periodo.tipoPer ? 'selected' : ''}>${esc(tipo)}</option>`).join('')}
             </select>
           </div>
-
-          <div class="field" id="paTrimestreField" ${periodo.tipoPer === 'Trimestral' ? '' : 'hidden'}>
-            <label for="paTrimestre">Trimestre</label>
-            <select id="paTrimestre" name="trimPer" class="input" ${periodo.tipoPer === 'Trimestral' ? 'required' : 'disabled'}>
+          <div class="field" data-period-trim-field ${periodo.tipoPer === 'Trimestral' ? '' : 'hidden'}>
+            <label for="${prefijo}_trimestre">Trimestre</label>
+            <select id="${prefijo}_trimestre" name="trimPer" class="input" ${periodo.tipoPer === 'Trimestral' ? 'required' : 'disabled'}>
               <option value="">Selecciona…</option>
               ${CONFIG.LISTAS.trimestre.map(trim => `<option value="${esc(trim)}" ${trim === periodo.trimPer ? 'selected' : ''}>${esc(trim)}</option>`).join('')}
             </select>
           </div>
-
-          <div class="field" style="min-width:280px">
-            <label for="paEtiqueta">Etiqueta adicional de corte <span class="small muted">(opcional)</span></label>
-            <input id="paEtiqueta" name="etiqueta" class="input" maxlength="120" value="${esc(periodo.etiqueta)}" placeholder="Ej. Acumulado a octubre">
+          <div class="field" style="min-width:260px">
+            <label for="${prefijo}_etiqueta">Etiqueta adicional <span class="small muted">(opcional)</span></label>
+            <input id="${prefijo}_etiqueta" name="etiqueta" class="input" maxlength="120" value="${esc(periodo.etiqueta)}" placeholder="Ej. Acumulado a noviembre">
           </div>
-
-          <button type="submit" class="btn primary">${icon('check', 16)}Guardar periodo</button>
+          <button type="submit" class="btn primary">${icon('check', 16)}Guardar ${esc(hoja.corto)}</button>
         </form>
-        <p class="hint" style="margin-top:12px">Cambiar este contexto no modifica ni elimina registros existentes. Los registros nuevos usarán el periodo guardado automáticamente.</p>
+      </div>`;
+  }).join('');
+
+  $('#view-config').innerHTML = `
+    <div class="grid fade-in">
+
+      <div class="card">
+        <h3>Periodos de análisis por sección</h3>
+        <p class="small muted" style="margin:4px 0 0;max-width:900px">
+          Configura Año, Tipo de periodo, Trimestre y Etiqueta adicional de forma independiente. Los registros existentes no cambian; cada fila nueva toma internamente el periodo de su sección.
+        </p>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(360px,1fr))">
+        ${periodosHTML}
       </div>
 
       <!-- ===============================================================

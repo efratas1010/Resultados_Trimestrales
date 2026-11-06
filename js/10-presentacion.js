@@ -16,7 +16,7 @@
 function cierreSlideHTML(area) {
   const rows = F.get('cierre').filter(r => r.area === area);
 
-  const periodo = Calc.textoPeriodoAnalisis(true);
+  const periodo = Calc.textoPeriodoAnalisis('cierre', true);
 
   const claseDensidad =
     rows.length > 12
@@ -182,7 +182,7 @@ function cierreSlideHTML(area) {
 
       /*
          Las clases de densidad se conservan por compatibilidad, pero ya no
-         fijan tamaños pequeños. Las métricas se calculan con el alto y ancho
+         fijan tama\u00F1os peque\u00F1os. Las m\u00E9tricas se calculan con el alto y ancho
          reales de la diapositiva y con la cantidad efectiva de filas.
       */
       #slides .cx.cx-unificada.cx-normal,
@@ -217,7 +217,7 @@ function cierreSlideHTML(area) {
     <div class="cx-head">
       <div>
         <span class="cx-eyebrow">${esc(area)}</span>
-        <h2>${esc(Calc.tituloPeriodoAnalisis('Cierre de resultados'))}</h2>
+        <h2>${esc(Calc.tituloPeriodoAnalisis('Cierre de resultados', 'cierre'))}</h2>
       </div>
 
       <div class="cx-meta">
@@ -466,7 +466,7 @@ function areaSlideHTML(area) {
   return `
     <div class="ax">
       <div class="ax-head">
-        <span class="ax-eyebrow">Direcci\u00F3n / \u00E1rea · ${esc(Calc.textoPeriodoAnalisis(true))}</span>
+        <span class="ax-eyebrow">Direcci\u00F3n / \u00E1rea \u00B7 periodos independientes por secci\u00F3n</span>
         <h2 class="ax-name">${esc(area)}</h2>
       </div>
 
@@ -519,7 +519,7 @@ function cmpSlideHTML() {
       <div class="cp-top">
         <div>
           <span class="cx-eyebrow">Comparativo entre \u00E1reas</span>
-          <h2>${esc(Calc.tituloPeriodoAnalisis('Cumplimiento · Cierre de resultados'))}</h2>
+          <h2>${esc(Calc.tituloPeriodoAnalisis('Cumplimiento \u00B7 Cierre de resultados', 'cierre'))}</h2>
         </div>
 
         <div class="cp-tools">
@@ -1083,6 +1083,444 @@ function ajustarCierreCompleto() {
   }
 }
 
+/* =======================================================================
+   5. REFLEXION DEL AREA EN CINCO DIAPOSITIVAS EJECUTIVAS
+   Una diapositiva por campo, sin modificar la captura ni los datos.
+   ======================================================================= */
+
+function camposReflexionPresentacion() {
+  const hoja = SHEET('reflexion');
+  const columnas = (hoja?.cols || []).filter(columna => columna.t !== 'area');
+  const porClave = new Map(columnas.map(columna => [columna.k, columna]));
+
+  return [
+    'logros',
+    'aprendizajes',
+    'obstaculos',
+    'distinto',
+    'apoyos'
+  ]
+    .map(clave => porClave.get(clave))
+    .filter(Boolean);
+}
+
+function reflexionSlideHTML(area, campo, indice, total) {
+  const registro = F.get('reflexion').find(fila => fila.area === area);
+  const valor = String(registro?.[campo.k] ?? '');
+  const tieneValor = valor.trim().length > 0;
+  const unidad = unidadFiltroActual()?.nombre || registro?.unidadNegocio || '';
+  const periodo = Calc.textoPeriodoAnalisis('reflexion', true);
+  const numero = String(indice + 1).padStart(2, '0');
+  const cantidad = String(total).padStart(2, '0');
+
+  return `
+    <style>
+      #slides .rx {
+        --rx-accent: var(--primary);
+        --rx-gap: 18px;
+        --rx-pad: 28px;
+        --rx-copy-size: 28px;
+        --rx-copy-leading: 1.42;
+        --rx-title-size: 38px;
+        --rx-prompt-size: 15px;
+        --rx-meta-label-size: 10px;
+        --rx-meta-value-size: 14px;
+        --rx-card-pad-y: 30px;
+        --rx-card-pad-x: 38px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--rx-gap);
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      #slides .rx,
+      #slides .rx * {
+        box-sizing: border-box;
+      }
+
+      #slides .rx-head {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: end;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      #slides .rx-heading {
+        min-width: 0;
+      }
+
+      #slides .rx-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 8px;
+        color: var(--rx-accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      #slides .rx-eyebrow::before {
+        content: '';
+        width: 28px;
+        height: 3px;
+        border-radius: 999px;
+        background: var(--rx-accent);
+      }
+
+      #slides .rx-title {
+        margin: 0;
+        color: var(--text);
+        font-size: var(--rx-title-size);
+        line-height: 1.03;
+        letter-spacing: -.035em;
+      }
+
+      #slides .rx-prompt {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: var(--rx-prompt-size);
+        line-height: 1.3;
+      }
+
+      #slides .rx-index {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      #slides .rx-index b {
+        color: var(--rx-accent);
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      #slides .rx-context {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.25fr);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+      }
+
+      #slides .rx-context-item {
+        min-width: 0;
+        padding: 11px 16px;
+      }
+
+      #slides .rx-context-item + .rx-context-item {
+        border-left: 1px solid var(--border);
+      }
+
+      #slides .rx-context-label {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--muted);
+        font-size: var(--rx-meta-label-size);
+        font-weight: 800;
+        letter-spacing: .08em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      #slides .rx-context-value {
+        display: block;
+        overflow-wrap: anywhere;
+        color: var(--text);
+        font-size: var(--rx-meta-value-size);
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      #slides .rx-main {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      #slides .rx-card {
+        position: relative;
+        display: grid;
+        grid-template-columns: 7px minmax(0, 1fr);
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--rx-accent) 22%, var(--border));
+        border-radius: 20px;
+        background:
+          linear-gradient(135deg, color-mix(in srgb, var(--rx-accent) 7%, var(--surface)) 0%, var(--surface) 42%),
+          var(--surface);
+        box-shadow: 0 18px 42px rgba(15, 23, 42, .09);
+      }
+
+      #slides .rx-accent {
+        background: var(--rx-accent);
+      }
+
+      #slides .rx-copy-wrap {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        padding: var(--rx-card-pad-y) var(--rx-card-pad-x);
+      }
+
+      #slides .rx-copy {
+        width: 100%;
+        margin: 0;
+        color: var(--text);
+        font-size: var(--rx-copy-size);
+        font-weight: 520;
+        line-height: var(--rx-copy-leading);
+        letter-spacing: -.012em;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+        transform-origin: top left;
+      }
+
+      #slides .rx-copy.rx-empty {
+        color: var(--muted);
+        font-style: italic;
+        font-weight: 500;
+      }
+
+      #slides .rx-foot {
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
+      @media (max-width: 900px) {
+        #slides .rx-head {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        #slides .rx-context {
+          grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.25fr);
+        }
+      }
+    </style>
+
+    <div class="rx" data-reflexion-campo="${esc(campo.k)}">
+      <header class="rx-head">
+        <div class="rx-heading">
+          <span class="rx-eyebrow">Reflexi\u00F3n del \u00E1rea</span>
+          <h2 class="rx-title">${esc(campo.l)}</h2>
+          ${campo.help ? `<p class="rx-prompt">${esc(campo.help)}</p>` : ''}
+        </div>
+
+        <div class="rx-index" aria-label="Campo ${indice + 1} de ${total}">
+          <b>${numero}</b><span>/ ${cantidad}</span>
+        </div>
+      </header>
+
+      <div class="rx-context" aria-label="Contexto de la reflexi\u00F3n">
+        <div class="rx-context-item">
+          <span class="rx-context-label">Unidad de negocio</span>
+          <span class="rx-context-value">${esc(unidad || '\u2014')}</span>
+        </div>
+
+        <div class="rx-context-item">
+          <span class="rx-context-label">\u00C1rea</span>
+          <span class="rx-context-value">${esc(area || '\u2014')}</span>
+        </div>
+
+        <div class="rx-context-item">
+          <span class="rx-context-label">Periodo</span>
+          <span class="rx-context-value">${esc(periodo || '\u2014')}</span>
+        </div>
+      </div>
+
+      <main class="rx-main">
+        <article class="rx-card">
+          <span class="rx-accent" aria-hidden="true"></span>
+          <div class="rx-copy-wrap">
+            <p class="rx-copy ${tieneValor ? '' : 'rx-empty'}">${tieneValor ? esc(valor) : 'Sin capturar'}</p>
+          </div>
+        </article>
+      </main>
+
+      <footer class="rx-foot">
+        <span>${esc(area)} \u00B7 Documento de Trabajo Interno</span>
+        <span>Contenido capturado sin modificaciones</span>
+      </footer>
+    </div>
+  `;
+}
+
+function ajustarReflexionCompleta() {
+  const stage = document.querySelector('#slides .slide-stage');
+  const slide = document.querySelector('#slides .slide');
+  const contenido = slide?.querySelector('.rx');
+  const envoltura = contenido?.querySelector('.rx-copy-wrap');
+  const texto = contenido?.querySelector('.rx-copy');
+
+  if (!stage || !slide || !contenido || !envoltura || !texto) return;
+
+  const limitar = (valor, minimo, maximo) => {
+    return Math.min(maximo, Math.max(minimo, valor));
+  };
+
+  const aplicarAjuste = () => {
+    if (!document.body.contains(contenido)) return;
+
+    const estiloStage = getComputedStyle(stage);
+    const anchoDisponible = Math.max(
+      1,
+      stage.clientWidth -
+        parseFloat(estiloStage.paddingLeft || 0) -
+        parseFloat(estiloStage.paddingRight || 0)
+    );
+    const altoDisponible = Math.max(
+      1,
+      stage.clientHeight -
+        parseFloat(estiloStage.paddingTop || 0) -
+        parseFloat(estiloStage.paddingBottom || 0)
+    );
+
+    slide.style.animation = 'none';
+    slide.style.boxSizing = 'border-box';
+    slide.style.flex = '0 0 auto';
+    slide.style.width = `${anchoDisponible}px`;
+    slide.style.maxWidth = 'none';
+    slide.style.height = `${altoDisponible}px`;
+    slide.style.maxHeight = 'none';
+    slide.style.margin = '0';
+    slide.style.zoom = '1';
+    slide.style.transform = 'none';
+    slide.style.transformOrigin = 'top center';
+    slide.style.overflow = 'hidden';
+
+    contenido.style.width = '100%';
+    contenido.style.maxWidth = 'none';
+    contenido.style.height = '100%';
+    contenido.style.maxHeight = 'none';
+
+    texto.style.transform = 'none';
+    texto.style.width = '100%';
+    envoltura.style.alignItems = 'center';
+
+    const longitud = String(texto.textContent || '').length;
+    const saltos = (String(texto.textContent || '').match(/\n/g) || []).length;
+    const base = limitar(
+      Math.min(
+        34,
+        30 - Math.max(0, longitud - 280) / 58 - saltos * .42,
+        18 + anchoDisponible / 105
+      ),
+      9,
+      34
+    );
+
+    const aplicarMetricas = fuente => {
+      const factor = limitar(fuente / 28, .55, 1.16);
+      contenido.style.setProperty('--rx-copy-size', `${fuente}px`);
+      contenido.style.setProperty(
+        '--rx-copy-leading',
+        String(limitar(1.34 + (28 - fuente) * .006, 1.34, 1.48))
+      );
+      contenido.style.setProperty('--rx-gap', `${limitar(18 * factor, 8, 21)}px`);
+      contenido.style.setProperty('--rx-title-size', `${limitar(fuente * 1.35, 24, 42)}px`);
+      contenido.style.setProperty('--rx-prompt-size', `${limitar(fuente * .54, 10, 17)}px`);
+      contenido.style.setProperty('--rx-meta-label-size', `${limitar(fuente * .36, 8, 11)}px`);
+      contenido.style.setProperty('--rx-meta-value-size', `${limitar(fuente * .5, 10, 16)}px`);
+      contenido.style.setProperty('--rx-card-pad-y', `${limitar(fuente * 1.05, 10, 34)}px`);
+      contenido.style.setProperty('--rx-card-pad-x', `${limitar(fuente * 1.35, 14, 44)}px`);
+    };
+
+    const cabe = () => {
+      const tolerancia = 1;
+      return texto.scrollHeight <= envoltura.clientHeight + tolerancia &&
+        texto.scrollWidth <= envoltura.clientWidth + tolerancia &&
+        contenido.scrollHeight <= contenido.clientHeight + tolerancia &&
+        contenido.scrollWidth <= contenido.clientWidth + tolerancia;
+    };
+
+    let minimo = 7;
+    let maximo = Math.max(minimo, base);
+    let mejor = minimo;
+
+    aplicarMetricas(minimo);
+
+    for (let intento = 0; intento < 10; intento++) {
+      const candidato = (minimo + maximo) / 2;
+      aplicarMetricas(candidato);
+
+      if (cabe()) {
+        mejor = candidato;
+        minimo = candidato;
+      } else {
+        maximo = candidato;
+      }
+    }
+
+    aplicarMetricas(mejor);
+
+    /*
+       Respaldo para textos excepcionalmente extensos: se conserva el contenido
+       completo dentro del rectangulo, sin barras ni recorte visual.
+    */
+    if (!cabe()) {
+      aplicarMetricas(7);
+      envoltura.style.alignItems = 'flex-start';
+
+      const escala = limitar(
+        Math.min(
+          envoltura.clientHeight / Math.max(1, texto.scrollHeight),
+          envoltura.clientWidth / Math.max(1, texto.scrollWidth)
+        ),
+        .05,
+        1
+      );
+
+      texto.style.transform = `scale(${escala})`;
+    }
+  };
+
+  aplicarAjuste();
+  requestAnimationFrame(() => {
+    aplicarAjuste();
+    requestAnimationFrame(aplicarAjuste);
+  });
+  setTimeout(aplicarAjuste, 180);
+  setTimeout(aplicarAjuste, 500);
+
+  if (!ajustarReflexionCompleta._escuchaResize) {
+    ajustarReflexionCompleta._escuchaResize = true;
+
+    window.addEventListener('resize', () => {
+      if (document.querySelector('#slides .rx')) {
+        ajustarReflexionCompleta();
+      }
+    });
+  }
+}
+
 const Slides = {
   list: [],
   i: 0,
@@ -1121,7 +1559,7 @@ const Slides = {
 
             <h1>${esc(CONFIG.LOGIN.TITULO)}</h1>
 
-            <p><b>${esc(Calc.textoPeriodoAnalisis(true))}</b></p>
+            <p><b>Periodos independientes por secci\u00F3n</b></p><p class="small">${esc(Calc.resumenPeriodosAnalisis())}</p>
 
             <p>
               ${areas.length}
@@ -1152,7 +1590,7 @@ const Slides = {
                 'Acciones completadas',
                 global.comp,
                 'pct',
-                `${global.conCuando} con CUÁNDO`
+                `${global.conCuando} con CU\u00C1NDO`
               )}
 
             </div>
@@ -1185,12 +1623,23 @@ const Slides = {
         if (clave === 'cierre') {
           lista.push({
             area,
-            sec: Calc.tituloPeriodoAnalisis(titulo),
+            sec: Calc.tituloPeriodoAnalisis(titulo, clave),
             html: cierreSlideHTML(area),
             after: ajustarCierreCompleto
           });
+        } else if (clave === 'reflexion') {
+          const campos = camposReflexionPresentacion();
+
+          campos.forEach((campo, indice) => {
+            lista.push({
+              area,
+              sec: `${Calc.tituloPeriodoAnalisis(titulo, clave)} \u00B7 ${campo.l}`,
+              html: reflexionSlideHTML(area, campo, indice, campos.length),
+              after: ajustarReflexionCompleta
+            });
+          });
         } else {
-          lista.push({ area, sec: Calc.tituloPeriodoAnalisis(titulo), html: sectionHTML(clave, area, true) });
+          lista.push({ area, sec: Calc.tituloPeriodoAnalisis(titulo, clave), html: sectionHTML(clave, area, true) });
         }
       });
     });

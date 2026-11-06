@@ -162,7 +162,7 @@ const Actions = {
   nav: b => goView(b.dataset.view),
   menu: () => $('#sidebar').classList.toggle('open'),
   goArea: b => { UI.unidadId = b.dataset.unidad || ''; UI.areaId = b.dataset.areaId || ''; UI.area = b.dataset.area || null; UI.regQ = ''; goView('registro'); },
-  sheet: b => { UI.sheet = b.dataset.sheet; UI.regQ = ''; renderRegistro(); $(`[data-sheet="${UI.sheet}"]`)?.focus(); },
+  sheet: b => { UI.sheet = b.dataset.sheet; UI.regQ = ''; renderTopbar(); renderRegistro(); $(`[data-sheet="${UI.sheet}"]`)?.focus(); },
     addRow: () => addInlineRow(),
   addKR: b => { const r = Calc.rows('okrs', UI.area).find(x => x.objetivo === b.dataset.obj); addInlineRow({ objetivo: b.dataset.obj, alineacion: r?.alineacion || '' }); },
   dupRow: b => dupRow(b.dataset.id),
@@ -230,8 +230,9 @@ const Changes = {
   migrationUnidad: el => cargarAreasMigracion(el),
   periodoTipo: el => {
     const trimestral = el.value === 'Trimestral';
-    const campo = $('#paTrimestreField');
-    const select = $('#paTrimestre');
+    const form = el.closest('form');
+    const campo = form?.querySelector('[data-period-trim-field]');
+    const select = form?.elements.trimPer;
     if (campo) campo.hidden = !trimestral;
     if (select) {
       select.disabled = !trimestral;
@@ -454,9 +455,15 @@ document.addEventListener('submit', e => {
     return doLogin(form);
   }
 
-  /* Periodo central de análisis */
-  if (form.id === 'periodoAnalisisForm') {
+  /* Periodo de análisis independiente por sección */
+  if (form.dataset.form === 'periodoAnalisisSeccion') {
     e.preventDefault();
+    const seccion = form.dataset.seccion;
+    const hoja = SHEET(seccion);
+    if (!hoja) {
+      toast('La sección del periodo no es válida.', 'error');
+      return;
+    }
     const anio = String(form.elements.anio.value || '').trim();
     const tipoPer = form.elements.tipoPer.value;
     const trimPer = tipoPer === 'Trimestral'
@@ -491,11 +498,14 @@ document.addEventListener('submit', e => {
       return;
     }
 
-    S().periodoAnalisis = { anio, tipoPer, trimPer, etiqueta };
-    Auth.log('Periodo de análisis actualizado', Calc.textoPeriodoAnalisis(true));
+    S().periodosAnalisis ||= {};
+    S().periodosAnalisis[seccion] = { anio, tipoPer, trimPer, etiqueta };
+    // El espejo legacy conserva compatibilidad con versiones anteriores.
+    if (seccion === 'cierre') S().periodoAnalisis = { anio, tipoPer, trimPer, etiqueta };
+    Auth.log('Periodo de análisis actualizado', `${hoja.nombre} · ${Calc.textoPeriodoAnalisis(seccion, true)}`);
     Store.save();
     renderAll();
-    toast('Periodo de análisis actualizado', 'ok');
+    toast(`Periodo de ${hoja.corto} actualizado`, 'ok');
     return;
   }
 

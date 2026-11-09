@@ -1,11 +1,11 @@
 
   'use strict';
 /* =======================================================================
-   M\u00D3DULO 1 \u00B7 CONFIGURACI\u00D3N  \u2190 Edita aqu\u00ED \u00E1reas, umbrales, listas y columnas
+   MÓDULO 1 · CONFIGURACIÓN  ← Edita aquí áreas, umbrales, listas y columnas
    ======================================================================= */
 const CONFIG = {
-  APP_NOMBRE: 'Portafolio Estrat\u00E9gico',
-  EMPRESA: 'Frutas Chanitos',            // Se puede cambiar tambi\u00E9n desde la pantalla Configuraci\u00F3n
+  APP_NOMBRE: 'Portafolio Estratégico',
+  EMPRESA: 'Frutas Chanitos',            // Se puede cambiar también desde la pantalla Configuración
   ANIO_CIERRE: 2025,
   ANIO_PLAN: 2026,
   STORAGE_KEY: 'portafolio_estrategico_v1',
@@ -15,29 +15,29 @@ const CONFIG = {
 
   // Roles de la plataforma
   ROLES: {
-    admin: { nombre: 'Administrador', desc: 'Planeaci\u00F3n Estrat\u00E9gica: acceso total, dashboard y administraci\u00F3n' },
-    direccion: { nombre: 'Direcci\u00F3n', desc: 'Captura y edita solo la informaci\u00F3n de sus \u00E1reas' }
+    admin: { nombre: 'Administrador', desc: 'Planeación Estratégica: acceso total, dashboard y administración' },
+    direccion: { nombre: 'Dirección', desc: 'Captura y edita solo la información de sus áreas' }
   },
-  // Portada de inicio de sesi\u00F3n (im\u00E1genes en la carpeta assets/)
+  // Portada de inicio de sesión (imágenes en la carpeta assets/)
   LOGIN: {
     FONDO: 'assets/fondo-login.jpg',
     LOGO: 'assets/logo-chanitos.png',
-    EMPRESAS: 'Frutas Chanitos - La Santanera - G\u00E9nesis',
+    EMPRESAS: 'Frutas Chanitos - La Santanera - Génesis',
     TITULO: 'Junta Anual de Resultados',
     // Lema de la portada: la palabra entre *asteriscos* se muestra en dorado y cursiva
-    LEMA: 'Del resultado del a\u00F1o a la *estrategia* del siguiente.'
+    LEMA: 'Del resultado del año a la *estrategia* del siguiente.'
   },
   CLAVE_INICIAL: 'Chanitos2026',
-  // Usuarios que se crean la primera vez (contrase\u00F1a inicial = CLAVE_INICIAL; se pide cambiarla al entrar)
+  // Usuarios que se crean la primera vez (contraseña inicial = CLAVE_INICIAL; se pide cambiarla al entrar)
   USUARIOS_INICIALES: [
-    { nombre: 'Efra\u00EDn Galv\u00E1n', usuario: 'admin', rol: 'admin', areas: [], puesto: 'Coordinador de Planeaci\u00F3n Estrat\u00E9gica' },
-    { nombre: 'Direcci\u00F3n Comercial', usuario: 'comercial', rol: 'direccion', areas: ['Comercial'] },
-    { nombre: 'Direcci\u00F3n de Log\u00EDstica', usuario: 'logistica', rol: 'direccion', areas: ['Log\u00EDstica'] },
-    { nombre: 'Direcci\u00F3n de Operaciones', usuario: 'operaciones', rol: 'direccion', areas: ['Almac\u00E9n', 'Compra de Fruta'] }
+    { nombre: 'Efraín Galván', usuario: 'admin', rol: 'admin', areas: [], puesto: 'Coordinador de Planeación Estratégica' },
+    { nombre: 'Dirección Comercial', usuario: 'comercial', rol: 'direccion', areas: ['Comercial'] },
+    { nombre: 'Dirección de Logística', usuario: 'logistica', rol: 'direccion', areas: ['Logística'] },
+    { nombre: 'Dirección de Operaciones', usuario: 'operaciones', rol: 'direccion', areas: ['Almacén', 'Compra de Fruta'] }
   ],
 
-  // \u00C1reas / direcciones (lista inicial; editable en la pantalla Configuraci\u00F3n)
-  AREAS: ['Comercial', 'Compras', 'Almac\u00E9n', 'Compra de Fruta', 'Log\u00EDstica', 'Finanzas', 'Gesti\u00F3n de Talento', 'Productoras'],
+  // Áreas / direcciones (lista inicial; editable en la pantalla Configuración)
+  AREAS: ['Comercial', 'Compras', 'Almacén', 'Compra de Fruta', 'Logística', 'Finanzas', 'Gestión de Talento', 'Productoras'],
   // ======================================================================
 // UNIDADES DE NEGOCIO
 // Estructura nueva. Por ahora trabaja en paralelo con AREAS para no
@@ -56,11 +56,11 @@ UNIDADES_NEGOCIO: [
   }
 ],
 
-  // Sem\u00E1foro autom\u00E1tico: % cumplimiento \u2265 verde \u2192 Verde; \u2265 amarillo \u2192 Amarillo; menor \u2192 Rojo
+  // Semáforo automático: % cumplimiento ≥ verde → Verde; ≥ amarillo → Amarillo; menor → Rojo
   UMBRALES: { verde: 95, amarillo: 85 },
 
-  // Objetivos estrat\u00E9gicos de la empresa (para alinear OKRs)
-  OBJETIVOS_ESTRATEGICOS: ['Crecimiento rentable', 'Excelencia operativa', 'Calidad y satisfacci\u00F3n del cliente', 'Desarrollo del talento', 'Transformaci\u00F3n digital', 'Sostenibilidad'],
+  // Objetivos estratégicos de la empresa (para alinear OKRs)
+  OBJETIVOS_ESTRATEGICOS: ['Crecimiento rentable', 'Excelencia operativa', 'Calidad y satisfacción del cliente', 'Desarrollo del talento', 'Transformación digital', 'Sostenibilidad'],
 
   // Listas desplegables
   LISTAS: {
@@ -69,6 +69,7 @@ UNIDADES_NEGOCIO: [
     semaforo: ['Verde', 'Amarillo', 'Rojo'],
     semaforoOrigen: ['Rojo', 'Amarillo'],
     estatus: ['No iniciada', 'En proceso', 'Completada', 'Retrasada', 'Cancelada'],
+    prioridad: ['Alta', 'Media', 'Baja'],
     frecuencia: ['Mensual', 'Bimestral', 'Trimestral', 'Semestral', 'Anual'],
     trimestre: ['T1', 'T2', 'T3', 'T4'],
     sentido: ['Mayor es mejor', 'Menor es mejor']
@@ -80,34 +81,41 @@ UNIDADES_NEGOCIO: [
 const AC = CONFIG.ANIO_CIERRE, AP = CONFIG.ANIO_PLAN;
    const SHEETS = [
   { key: 'cierre', hoja: 'Cierre', nombre: 'Cierre de resultados', corto: 'Cierre', icon: 'chart',
-    ayuda: 'Resultados por indicador del periodo elegido. El % de cumplimiento y el sem\u00E1foro se calculan solos a partir de la meta, el real y el sentido del indicador.',
+    ayuda: 'Resultados por indicador del periodo elegido. El % de cumplimiento y el semáforo se calculan solos a partir de la meta, el real y el sentido del indicador.',
     cols: [
-      { k: 'area', l: '\u00C1rea', t: 'area' }, { k: 'anio', l: 'A\u00F1o', t: 'select', opts: 'anios', req: 1 }, { k: 'tipoPer', l: 'Tipo de periodo', t: 'select', opts: 'tipoPer', req: 1 }, { k: 'trimPer', l: 'Trimestre del periodo', t: 'select', opts: 'trimestre' },
-      { k: 'indicador', l: 'Indicador', t: 'text', req: 1, full: 1, w: 34 },
-      { k: 'unidad', l: 'Unidad', t: 'text', w: 12, help: 'Ej. %, cajas, MDP, d\u00EDas' },
-      { k: 'sentido', l: 'Sentido', t: 'select', opts: 'sentido', req: 1, def: 'Mayor es mejor', help: '\u00BFUn valor m\u00E1s alto es mejor (ventas) o m\u00E1s bajo es mejor (mermas, costos)?' },
+      { k: 'area', l: 'Área', t: 'area' }, { k: 'indicador', l: 'Indicador', t: 'text', req: 1, full: 1, w: 34 },
+      { k: 'unidad', l: 'Unidad', t: 'text', w: 12, help: 'Ej. %, cajas, MDP, días' },
+      { k: 'sentido', l: 'Sentido', t: 'select', opts: 'sentido', req: 1, def: 'Mayor es mejor', help: '¿Un valor más alto es mejor (ventas) o más bajo es mejor (mermas, costos)?' },
       { k: 'meta', l: 'Meta', per: 1, t: 'number', req: 1 },
       { k: 'real', l: 'Real', per: 1, t: 'number', req: 1 },
       { k: 'cumplimiento', l: '% Cumplimiento', t: 'calc', fn: r => Calc.cumplimiento(r), fmt: v => fmtPct(v), num: 1 },
-      { k: 'semaforo', l: 'Sem\u00E1foro', t: 'semaforo', def: 'Autom\u00E1tico', help: 'D\u00E9jalo en Autom\u00E1tico para calcularlo con los umbrales; elige un color solo si necesitas forzarlo.' },
+      { k: 'semaforo', l: 'Semáforo', t: 'semaforo', def: 'Automático', help: 'Déjalo en Automático para calcularlo con los umbrales; elige un color solo si necesitas forzarlo.' },
       { k: 'comentarios', l: 'Comentarios', t: 'textarea', full: 1, w: 45 }
     ] },
-  { key: 'qqc', hoja: 'Qui\u00E9n-Qu\u00E9-Cu\u00E1ndo', nombre: 'PLAN DE ACCIONES CR\u00CDTICAS | METODOLOG\u00CDA QUI\u00C9N - QU\u00C9 - CU\u00C1NDO', corto: 'Qui\u00E9n\u2013Qu\u00E9\u2013Cu\u00E1ndo', icon: 'target',
-    ayuda: 'La tabla se alimenta del Cierre de resultados. Incluye todos los rojos y los amarillos cuyo cumplimiento est\u00E1 en la mitad inferior de la banda amarilla: desde el umbral amarillo, inclusive, hasta el punto medio con el umbral verde, exclusivo. Es un criterio de priorizaci\u00F3n adoptado; no modifica el sem\u00E1foro ni implica una tendencia.',
-    source: 'cierre',
+  { key: 'qqc', hoja: 'Quién-Qué-Cuándo', nombre: 'Quién – Qué – Cuándo', corto: 'Quién–Qué–Cuándo', icon: 'target',
+    ayuda: 'Plan de acción para los indicadores en rojo y amarillo críticos: causa raíz, acción, responsable y fecha compromiso.',
     cols: [
-      { k: 'semaforo', l: 'Prioridad', t: 'calc', fn: r => r.semaforo || '', fmt: v => v || '\u2014', w: 12 },
-      { k: 'indicador', l: 'Indicador', t: 'calc', fn: r => r.indicador || '', fmt: v => v || '\u2014', w: 30 },
-      { k: 'meta', l: 'Meta', t: 'calc', fn: r => toNum(r.meta), fmt: v => fmtNum(v), num: 1, w: 13 },
-      { k: 'real', l: 'Real', t: 'calc', fn: r => toNum(r.real), fmt: v => fmtNum(v), num: 1, w: 13 },
-      { k: 'variacionCierre', l: 'Variaci\u00F3n', t: 'calc', fn: r => Calc.variacionCierre(r), fmt: (v, r) => Calc.formatearVariacionCierre(r), num: 1, w: 14 },
-      { k: 'cumplimiento', l: 'Cumplimiento', t: 'calc', fn: r => Calc.cumplimiento(r), fmt: v => fmtPct(v), num: 1, w: 15 },
-      { k: 'responsable', l: 'QUI\u00C9N', t: 'text', w: 24, list: 1 },
-      { k: 'accion', l: 'QU\u00C9 debe hacer', t: 'textarea', full: 1, w: 42 },
-      { k: 'cuando', l: 'CU\u00C1NDO', t: 'text', w: 22, help: 'Texto libre. Ejemplos como \u201CM\u00E1ximo 7 d\u00EDas\u201D o \u201CM\u00E1ximo 15 d\u00EDas\u201D no se asignan autom\u00E1ticamente.' },
-      { k: 'resultado', l: 'Resultado esperado', t: 'textarea', full: 1, w: 38 },
-      { k: 'estatus', l: 'Estatus', t: 'select', opts: 'estatus', w: 18 },
-      { k: 'observaciones', l: 'Observaciones', t: 'textarea', full: 1, w: 36 }
+      { k: 'area', l: 'Área', t: 'area' }, { k: 'anio', l: 'Año', t: 'select', opts: 'anios', req: 1 }, { k: 'tipoPer', l: 'Tipo de periodo', t: 'select', opts: 'tipoPer', req: 1 }, { k: 'trimPer', l: 'Trimestre del periodo', t: 'select', opts: 'trimestre' },
+      { k: 'semaforo', l: 'Semáforo origen', t: 'select', opts: 'semaforoOrigen', req: 1, def: 'Rojo', help: 'Color del indicador que origina la acción' },
+      { k: 'indicador', l: 'Indicador / problema', t: 'text', req: 1, w: 30, list: 1 },
+      { k: 'causa', l: 'Causa raíz', t: 'textarea', req: 1, full: 1, w: 40 },
+      { k: 'accion', l: 'Acción', t: 'textarea', req: 1, full: 1, w: 45 },
+      { k: 'responsable', l: 'Responsable', t: 'text', req: 1, w: 22, list: 1 },
+      { k: 'fecha', l: 'Fecha compromiso', t: 'date', req: 1, w: 14 },
+      { k: 'estatus', l: 'Estatus', t: 'select', opts: 'estatus', req: 1, def: 'No iniciada' },
+      { k: 'avance', l: '% Avance', t: 'percent', def: 0, help: '0 a 100' },
+      { k: 'trimestre', l: 'Trimestre', t: 'calc', fn: r => trimestreDe(r.fecha), fmt: v => v || '—' }
+    ] },
+  { key: 'propuestas', hoja: 'Propuestas', nombre: 'Propuestas', corto: 'Propuestas', icon: 'bulb',
+    ayuda: 'Iniciativas, proyectos o mejoras que el área propone para el periodo elegido.',
+    cols: [
+      { k: 'area', l: 'Área', t: 'area' }, { k: 'anio', l: 'Año', t: 'select', opts: 'anios', req: 1 }, { k: 'tipoPer', l: 'Tipo de periodo', t: 'select', opts: 'tipoPer', req: 1 }, { k: 'trimPer', l: 'Trimestre del periodo', t: 'select', opts: 'trimestre' },
+      { k: 'nombre', l: 'Nombre de la iniciativa', t: 'text', req: 1, full: 1, w: 32 },
+      { k: 'descripcion', l: 'Descripción', t: 'textarea', req: 1, full: 1, w: 45 },
+      { k: 'beneficio', l: 'Beneficio esperado', t: 'textarea', req: 1, full: 1, w: 40 },
+      { k: 'prioridad', l: 'Prioridad', t: 'select', opts: 'prioridad', req: 1, def: 'Media' },
+      { k: 'responsable', l: 'Responsable', t: 'text', req: 1, w: 22, list: 1 },
+      { k: 'trimestre', l: 'Trimestre de arranque', t: 'select', opts: 'trimestre' }
     ] },
   { key: 'kpis', hoja: 'S\u00E1bana de KPIs', nombre: 'S\u00E1bana de KPIs', corto: 'KPIs', icon: 'grid',
     ayuda: 'Indicadores con los que el \u00E1rea se medir\u00E1 en el Periodo por Secci\u00F3n configurado desde Administraci\u00F3n.',
@@ -120,27 +128,83 @@ const AC = CONFIG.ANIO_CIERRE, AP = CONFIG.ANIO_PLAN;
       { k: 'metaRoja', l: 'Meta Roja', t: 'number', w: 14 },
       { k: 'responsable', l: 'Responsable', t: 'text', req: 1, w: 18, list: 1 }
     ] },
-  { key: 'reflexion', hoja: 'Reflexi\u00F3n', nombre: 'Reflexi\u00F3n del \u00E1rea', corto: 'Reflexi\u00F3n', icon: 'feather', form: 1,
-    ayuda: 'Reflexi\u00F3n cualitativa del a\u00F1o. Escribe con frases cortas; puedes usar una l\u00EDnea por idea.',
+  { key: 'reflexion', hoja: 'Reflexión', nombre: 'Reflexión del área', corto: 'Reflexión', icon: 'feather', form: 1,
+    ayuda: 'Reflexión cualitativa del año. Escribe con frases cortas; puedes usar una línea por idea.',
     cols: [
-      { k: 'area', l: '\u00C1rea', t: 'area' },
-      { k: 'logros', l: 'Logros', t: 'textarea', w: 50, help: '\u00BFQu\u00E9 resultados nos hacen sentir orgullosos?' },
-      { k: 'aprendizajes', l: 'Aprendizajes', t: 'textarea', w: 50, help: '\u00BFQu\u00E9 aprendimos como equipo?' },
-      { k: 'obstaculos', l: 'Obst\u00E1culos', t: 'textarea', w: 50, help: '\u00BFQu\u00E9 nos fren\u00F3?' },
-      { k: 'distinto', l: 'Lo que har\u00EDamos distinto', t: 'textarea', w: 50, help: 'Si empez\u00E1ramos de nuevo el a\u00F1o\u2026' },
-      { k: 'apoyos', l: 'Apoyos que se necesitan', t: 'textarea', w: 50, help: 'Recursos, decisiones o apoyos de otras \u00E1reas' }
+      { k: 'area', l: 'Área', t: 'area' },
+      { k: 'logros', l: 'Logros', t: 'textarea', w: 50, help: '¿Qué resultados nos hacen sentir orgullosos?' },
+      { k: 'aprendizajes', l: 'Aprendizajes', t: 'textarea', w: 50, help: '¿Qué aprendimos como equipo?' },
+      { k: 'obstaculos', l: 'Obstáculos', t: 'textarea', w: 50, help: '¿Qué nos frenó?' },
+      { k: 'distinto', l: 'Lo que haríamos distinto', t: 'textarea', w: 50, help: 'Si empezáramos de nuevo el año…' },
+      { k: 'apoyos', l: 'Apoyos que se necesitan', t: 'textarea', w: 50, help: 'Recursos, decisiones o apoyos de otras áreas' }
     ] },
   { key: 'okrs', hoja: 'Propuesta de OKRs', nombre: 'Propuesta de OKRs', corto: 'OKRs', icon: 'flag',
     ayuda: 'Cada fila es un Key Result. Las filas con el mismo Objetivo se agrupan; se recomiendan de 2 a 5 KRs medibles por objetivo.',
     cols: [
-      { k: 'area', l: '\u00C1rea', t: 'area' }, { k: 'anio', l: 'A\u00F1o', t: 'select', opts: 'anios', req: 1 }, { k: 'tipoPer', l: 'Tipo de periodo', t: 'select', opts: 'tipoPer', req: 1 }, { k: 'trimPer', l: 'Trimestre del periodo', t: 'select', opts: 'trimestre' },
+      { k: 'area', l: 'Área', t: 'area' }, { k: 'anio', l: 'Año', t: 'select', opts: 'anios', req: 1 }, { k: 'tipoPer', l: 'Tipo de periodo', t: 'select', opts: 'tipoPer', req: 1 }, { k: 'trimPer', l: 'Trimestre del periodo', t: 'select', opts: 'trimestre' },
       { k: 'objetivo', l: 'Objetivo', t: 'text', req: 1, full: 1, w: 40, list: 1 },
-      { k: 'alineacion', l: 'Alineaci\u00F3n estrat\u00E9gica', t: 'select', opts: () => S().objetivos, req: 1, w: 26 },
+      { k: 'alineacion', l: 'Alineación estratégica', t: 'select', opts: () => S().objetivos, req: 1, w: 26 },
       { k: 'kr', l: 'Key Result', t: 'text', req: 1, full: 1, w: 45 },
-      { k: 'base', l: 'L\u00EDnea base', t: 'number' },
+      { k: 'base', l: 'Línea base', t: 'number' },
       { k: 'meta', l: 'Meta', per: 1, t: 'number', req: 1 },
       { k: 'unidad', l: 'Unidad', t: 'text', w: 10 },
       { k: 'responsable', l: 'Responsable', t: 'text', req: 1, w: 22, list: 1 }
     ] }
 ];
-const SHEET = k => SHEETS.find(s => s.key === k);
+const RP_SECCION_PERSONAL = {
+  "key": "reflexionPersonal",
+  "hoja": "Reflexi\u00f3n Personal",
+  "nombre": "Reflexi\u00f3n Personal",
+  "corto": "Reflexi\u00f3n Personal",
+  "icon": "feather",
+  "form": 1,
+  "ayuda": "Reflexi\u00f3n individual de liderazgo. Escribe en primera persona.",
+  "cols": [
+    {
+      "k": "area",
+      "l": "\u00c1rea",
+      "t": "area"
+    },
+    {
+      "k": "aporteLider",
+      "l": "Lo que aporto como l\u00edder",
+      "t": "textarea",
+      "w": 50,
+      "badge": "F \u00b7 Fortaleza",
+      "help": "\u00bfQu\u00e9 hago bien como l\u00edder que realmente hace la diferencia en mi equipo y en sus resultados?"
+    },
+    {
+      "k": "evitado",
+      "l": "Lo que he evitado",
+      "t": "textarea",
+      "w": 50,
+      "badge": "D \u00b7 Debilidad",
+      "help": "\u00bfQu\u00e9 conversaci\u00f3n, decisi\u00f3n o persona dej\u00e9 pendiente? \u00bfQu\u00e9 exijo que yo no cumplo?"
+    },
+    {
+      "k": "crecimiento",
+      "l": "Hacia d\u00f3nde puedo crecer",
+      "t": "textarea",
+      "w": 50,
+      "badge": "O \u00b7 Oportunidad",
+      "help": "\u00bfQu\u00e9 puedo aprender, delegar o impulsar para crecer yo y hacer crecer a mi equipo?"
+    },
+    {
+      "k": "freno",
+      "l": "Lo que puede frenarme",
+      "t": "textarea",
+      "w": 50,
+      "badge": "A \u00b7 Amenaza",
+      "help": "\u00bfQu\u00e9 h\u00e1bito m\u00edo o qu\u00e9 situaci\u00f3n podr\u00eda frenar mi liderazgo si no lo atiendo?"
+    },
+    {
+      "k": "compromisoPersonal",
+      "l": "Mi palabra para el pr\u00f3ximo a\u00f1o",
+      "t": "textarea",
+      "w": 50,
+      "badge": "Compromiso",
+      "help": "\u00bfQu\u00e9 cambiar\u00e9 en m\u00ed y c\u00f3mo sabr\u00e1 mi equipo que lo cumpl\u00ed?"
+    }
+  ]
+};
+const SHEET = k => SHEETS.find(s => s.key === k) || (k === 'reflexionPersonal' ? RP_SECCION_PERSONAL : undefined);

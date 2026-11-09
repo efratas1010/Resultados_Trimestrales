@@ -1089,6 +1089,20 @@ function ajustarCierreCompleto() {
    filas, tipografia y espaciado adaptativos, sin alterar datos ni columnas.
    ======================================================================= */
 
+function kpisOrdenadosPresentacion(rows) {
+  return rows
+    .map((registro, indice) => ({ registro, indice }))
+    .sort((a, b) => {
+      const pa = Number(a.registro.posicion), pb = Number(b.registro.posicion);
+      const va = Number.isInteger(pa) && pa > 0;
+      const vb = Number.isInteger(pb) && pb > 0;
+      if (va && vb && pa !== pb) return pa - pb;
+      if (va !== vb) return va ? -1 : 1;
+      return a.indice - b.indice;
+    })
+    .map(({ registro }) => registro);
+}
+
 function kpisSlideHTML(area) {
   /*
      Edicion dibuja esta hoja con Calc.rows(...). Presentacion consume esa
@@ -1100,12 +1114,14 @@ function kpisSlideHTML(area) {
     registroArea => registroArea.nombre === area
   );
 
-  const rowsEdicion = Calc.rows(
-    'kpis',
-    area,
-    unidad?.id || '',
-    areaActual?.id || '',
-    'kpis'
+  const rowsEdicion = kpisOrdenadosPresentacion(
+    Calc.rows(
+      'kpis',
+      area,
+      unidad?.id || '',
+      areaActual?.id || '',
+      'kpis'
+    )
   );
 
   const rows = rowsEdicion.filter(registro => F.resp(registro));
@@ -1865,6 +1881,9 @@ function ajustarPlanAccionesCriticas() {
    Una diapositiva por campo, sin modificar la captura ni los datos.
    ======================================================================= */
 
+function rpAnteportadaHTML(area, titulo) {
+ return `<div class="slide-cover" style="width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:clamp(20px,4vw,56px)"><span class="eyebrow">${esc(area)}</span><h1 style="font-size:clamp(32px,5vw,72px);line-height:1.08;overflow-wrap:anywhere">${esc(titulo)}</h1><div style="width:120px;height:6px;background:var(--primary);border-radius:999px;margin-top:24px"></div></div>`;
+}
 function camposReflexionPresentacion() {
   const hoja = SHEET('reflexion');
   const columnas = (hoja?.cols || []).filter(columna => columna.t !== 'area');
@@ -1881,7 +1900,7 @@ function camposReflexionPresentacion() {
     .filter(Boolean);
 }
 
-function reflexionSlideHTML(area, campo, indice, total) {
+function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F3n de \u00C1rea') {
   const registro = F.get('reflexion').find(fila => fila.area === area);
   const valor = String(registro?.[campo.k] ?? '');
   const tieneValor = valor.trim().length > 0;
@@ -2106,7 +2125,7 @@ function reflexionSlideHTML(area, campo, indice, total) {
     <div class="rx" data-reflexion-campo="${esc(campo.k)}">
       <header class="rx-head">
         <div class="rx-heading">
-          <span class="rx-eyebrow">Reflexi\u00F3n del \u00E1rea</span>
+          <span class="rx-eyebrow">${esc(etiqueta)}</span>
           <h2 class="rx-title">${esc(campo.l)}</h2>
           ${campo.help ? `<p class="rx-prompt">${esc(campo.help)}</p>` : ''}
         </div>
@@ -2298,6 +2317,11 @@ function ajustarReflexionCompleta() {
   }
 }
 
+const ORDEN_SECCIONES_PRESENTACION = ['reflexion', 'reflexionPersonal', 'cierre', 'qqc', 'kpis', 'okrs'];
+const seccionesPresentacionOrdenadas = () => ORDEN_SECCIONES_PRESENTACION
+  .map(clave => clave === 'reflexionPersonal' ? ['reflexionPersonal', RP_SECCION_PERSONAL.nombre, RP_SECCION_PERSONAL.icon] : SECTIONS.find(seccion => seccion[0] === clave))
+  .filter(Boolean);
+
 const Slides = {
   list: [],
   i: 0,
@@ -2396,7 +2420,7 @@ const Slides = {
         `
       });
 
-      SECTIONS.forEach(([clave, titulo]) => {
+      seccionesPresentacionOrdenadas().forEach(([clave, titulo]) => {
         if (clave === 'cierre') {
           lista.push({
             area,
@@ -2418,7 +2442,12 @@ const Slides = {
             html: kpisSlideHTML(area),
             after: ajustarKpisSlide
           });
+        } else if (clave === 'reflexionPersonal') {
+          lista.push({area, sec: 'Reflexión Personal', html: rpAnteportadaHTML(area, 'Reflexión Personal')});
+          const campos = RP_SECCION_PERSONAL.cols.filter(c => c.t !== 'area');
+          campos.forEach((campo, indice) => lista.push({area, sec: 'Reflexión Personal · ' + campo.l, html: reflexionSlideHTML(area, campo, indice, campos.length, 'Reflexión Personal'), after: ajustarReflexionCompleta}));
         } else if (clave === 'reflexion') {
+          lista.push({area, sec: 'Reflexión de Área', html: rpAnteportadaHTML(area, 'Reflexión de Área')});
           const campos = camposReflexionPresentacion();
 
           campos.forEach((campo, indice) => {

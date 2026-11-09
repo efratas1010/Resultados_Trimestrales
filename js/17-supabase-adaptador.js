@@ -9,7 +9,7 @@ const Cloud = {
     cierre: {table:'cierre_resultados', map:{indicador:'indicador',unidad:'unidad_medida',sentido:'sentido',meta:'meta',real:'real',semaforo:'semaforo_forzado',comentarios:'comentarios'}, required:['indicador','meta','real'], nums:['meta','real']},
     qqc: {table:'quien_que_cuando',map:{cierreId:'cierre_resultado_id',semaforo:'semaforo_origen',indicador:'indicador_problema',accion:'accion',responsable:'responsable',cuando:'cuando_texto',resultado:'resultado_esperado',estatus:'estatus',observaciones:'observaciones'},required:['cierreId','semaforo','indicador'],nullable:['accion','responsable','cuando','resultado','estatus','observaciones'],nums:[]},
     kpis: {table:'kpis',map:{kpi:'kpi',unidad:'unidad_medida',metaVerde:'meta_verde',metaAmarilla:'meta_amarilla',metaRoja:'meta_roja',responsable:'responsable'},required:['kpi','responsable'],nums:['metaVerde','metaAmarilla','metaRoja']},
-    reflexion: {table:'reflexiones',map:{logros:'logros',aprendizajes:'aprendizajes',obstaculos:'obstaculos',distinto:'que_hariamos_distinto',apoyos:'apoyos_necesarios'},required:[],nums:[]},
+    reflexion: {table:'reflexiones',map:{logros:'logros',aprendizajes:'aprendizajes',obstaculos:'obstaculos',distinto:'que_hariamos_distinto',apoyos:'apoyos_necesarios',aporteLider:'aporte_lider',evitado:'evitado',crecimiento:'crecimiento',freno:'freno',compromisoPersonal:'compromiso_personal'},required:[],nums:[]},
     okrs: {table:'okrs',map:{objetivo:'objetivo',kr:'key_result',base:'linea_base',meta:'meta',unidad:'unidad_medida',responsable:'responsable'},required:['objetivo','kr','meta','responsable','alineacion'],nums:['base','meta']}
   },
   async checked(request) { const r = await request; if(r.error) throw new Error(r.error.message); return r.data; },

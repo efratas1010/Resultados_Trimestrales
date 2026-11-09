@@ -2,6 +2,21 @@
 /* =======================================================================
    M\u00D3DULO 7 \u00B7 SECCI\u00D3N 1: REGISTRO
    ======================================================================= */
+function rpHojasEdicion() {
+  const orden = ['reflexion', 'reflexionPersonal', 'cierre', 'qqc', 'kpis', 'okrs'];
+  const hojas = [...SHEETS, RP_SECCION_PERSONAL]
+    .filter(h => h.key !== 'propuestas')
+    .map(h => h.key === 'reflexion'
+      ? { ...h, nombre: 'Reflexi\u00f3n de \u00c1rea', corto: 'Reflexi\u00f3n de \u00c1rea' }
+      : h);
+  return [...orden.map(k => hojas.find(h => h.key === k)).filter(Boolean), ...hojas.filter(h => !orden.includes(h.key))];
+}
+function rpRegistroContexto(area) { return Calc.rows('reflexion', area, UI.unidadId, UI.areaId)[0]; }
+function rpAvanceEdicion(area, key, unidadId, areaId) {
+  if (key !== 'reflexionPersonal') return Calc.avanceHoja(area, key, unidadId, areaId);
+  const r = rpRegistroContexto(area), campos = RP_SECCION_PERSONAL.cols.filter(c => c.t !== 'area');
+  return campos.filter(c => String(r?.[c.k] ?? '').trim()).length / campos.length;
+}
 function renderRegistro() {
   const unidades = unidadesEdicion();
   const unidad = unidadEdicionActual();
@@ -251,9 +266,9 @@ function renderRegistro() {
 
   UI.area = areaObj.nombre;
 
-  const hojasCompletas = SHEETS.filter(
+  const hojasCompletas = rpHojasEdicion().filter(
     hoja =>
-      Calc.avanceHoja(
+      rpAvanceEdicion(
         areaObj.nombre,
         hoja.key,
         UI.unidadId,
@@ -283,7 +298,7 @@ function renderRegistro() {
 
       <span class="small muted">
         ${hojasCompletas} de
-        ${SHEETS.length} hojas completas
+        ${rpHojasEdicion().length} hojas completas
       </span>
     </div>
 
@@ -292,9 +307,9 @@ function renderRegistro() {
       role="tablist"
       aria-label="Hojas de captura"
     >
-      ${SHEETS
+      ${rpHojasEdicion()
         .map(hoja => {
-          const avance = Calc.avanceHoja(
+          const avance = rpAvanceEdicion(
             areaObj.nombre,
             hoja.key,
             UI.unidadId,
@@ -351,9 +366,9 @@ function sheetPanel(area, sh) {
       <button type="button" class="btn primary" data-action="addRow">${icon('plus', 16)}Agregar ${sh.key === 'okrs' ? 'Key Result' : 'fila'}</button></div>`}</div>`;
   if (!sh.form) return head + `<div id="regTable"></div>`;
   // Reflexi\u00F3n: formulario de texto libre estructurado
-  const r = Calc.rows('reflexion', area)[0] || {};
+  const r = rpRegistroContexto(area) || {};
   return head + `<div class="refl-grid">${sh.cols.filter(c => c.t !== 'area').map(c => `
-    <div class="refl-card"><label for="rf_${c.k}"><b>${esc(c.l)}</b></label><span class="hint">${esc(c.help || '')}</span>
+    <div class="refl-card"><label for="rf_${c.k}"><b>${esc(c.l)}</b></label>${c.badge ? `<span class="tag">${esc(c.badge)}</span>` : ''}<span class="hint">${esc(c.help || '')}</span>
       <textarea id="rf_${c.k}" class="input" data-input="refl" data-k="${c.k}" placeholder="Escribe aqu\u00ED\u2026">${esc(r[c.k] || '')}</textarea>
       <span class="cnt" id="cnt_${c.k}">${String(r[c.k] || '').length} caracteres</span></div>`).join('')}</div>
     <p class="hint" style="margin-top:12px">${icon('check', 14)} Se guarda autom\u00E1ticamente mientras escribes.</p>`;
@@ -697,9 +712,9 @@ function delRow(id) {
   if (!confirm('\u00BFEliminar este registro? Esta acci\u00F3n no se puede deshacer.')) return;
   S().data[UI.sheet] = S().data[UI.sheet].filter(r => r.id !== id); Auth.log('Registro eliminado', `${SHEET(UI.sheet).nombre} \u00B7 ${UI.area}`); Store.save(); renderSidebar(); renderRegistro(); toast('Registro eliminado');
 }
-const saveRefl = debounce(() => { Store.save(); renderSidebar(); $$('.tab-dot', $('#view-registro')).forEach((d, i) => { const p = Calc.avanceHoja(UI.area, SHEETS[i].key); d.className = 'tab-dot ' + (p >= 1 ? 'ok' : p > 0 ? 'mid' : ''); }); }, 300);
+const saveRefl = debounce(() => { Store.save(); renderSidebar(); $$('.tab-dot', $('#view-registro')).forEach((d, i) => { const p = rpAvanceEdicion(UI.area, rpHojasEdicion()[i].key, UI.unidadId, UI.areaId); d.className = 'tab-dot ' + (p >= 1 ? 'ok' : p > 0 ? 'mid' : ''); }); }, 300);
 function onReflInput(el) {
-  let r = Calc.rows('reflexion', UI.area)[0];
+  let r = rpRegistroContexto(UI.area);
   if (!r) { r = {
   id: uid(),
 
@@ -707,7 +722,8 @@ function onReflInput(el) {
   unidadNegocio: unidadEdicionActual()?.nombre || '',
 
   areaId: UI.areaId,
-  area: areaEdicionActual()?.nombre || UI.area
+  area: areaEdicionActual()?.nombre || UI.area,
+  ...Calc.camposPeriodoAnalisis('reflexion')
 }; S().data.reflexion.push(r); }
   r[el.dataset.k] = el.value; $('#cnt_' + el.dataset.k).textContent = el.value.length + ' caracteres';
   setSaveStatus('saving'); saveRefl();

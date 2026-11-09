@@ -175,7 +175,7 @@ function drawCharts() {
   charts.c4 = new Chart($('#chKpi'), { type: 'bar', data: { labels: ar4, datasets: [{ label: 'KPIs', data: ar4.map(a => k.filter(r => r.area === a).length), backgroundColor: '#8e57e5', borderRadius: 4, maxBarThickness: 46 }] }, options: { ...base, plugins: { ...base.plugins, legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } } });
 }
 
-const SECTIONS = [['cierre', 'Cierre de resultados', 'chart'], ['qqc', 'PLAN DE ACCIONES CR\u00CDTICAS | METODOLOG\u00CDA QUI\u00C9N - QU\u00C9 - CU\u00C1NDO', 'target'], ['kpis', 'S\u00E1bana de KPIs', 'grid'], ['reflexion', 'Reflexi\u00F3n del \u00E1rea', 'feather'], ['okrs', 'Propuesta de OKRs', 'flag']];
+const SECTIONS = [['cierre', 'Cierre de resultados', 'chart'], ['qqc', 'PLAN DE ACCIONES CR\u00CDTICAS | METODOLOG\u00CDA QUI\u00C9N - QU\u00C9 - CU\u00C1NDO', 'target'], ['kpis', 'S\u00E1bana de KPIs', 'grid'], ['reflexion', 'Reflexi\u00F3n de \u00C1rea', 'feather'], ['okrs', 'Propuesta de OKRs', 'flag']];
 const secTitle = (key, t, i, area) => `<div class="sec-title"><div class="sic">${icon(i, 20)}</div><div><h3>${esc(Calc.tituloPeriodoAnalisis(t, key))}</h3>${area ? `<span class="small muted">${esc(area)}</span>` : ''}</div></div>`;
 const emptyBlock = t => `<div class="empty" style="padding:28px"><div class="em-ic" style="width:56px;height:56px">${icon('info', 26)}</div><p style="margin:0 auto">${esc(t)}</p></div>`;
 

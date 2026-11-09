@@ -3,6 +3,7 @@
    MÓDULO 14 · EVENTOS (delegación)
    ======================================================================= */
 const Actions = {
+  guardarSeccion: () => rpGuardarSeccionActual(),
     /* ===============================================================
      UNIDADES DE NEGOCIO
      =============================================================== */
@@ -162,7 +163,7 @@ const Actions = {
   nav: b => goView(b.dataset.view),
   menu: () => $('#sidebar').classList.toggle('open'),
   goArea: b => { UI.unidadId = b.dataset.unidad || ''; UI.areaId = b.dataset.areaId || ''; UI.area = b.dataset.area || null; UI.regQ = ''; goView('registro'); },
-  sheet: b => { UI.sheet = b.dataset.sheet; UI.regQ = ''; renderTopbar(); renderRegistro(); $(`[data-sheet="${UI.sheet}"]`)?.focus(); },
+  sheet: b => { if (!rpComprobarAccesoSeccion(b.dataset.sheet)) return; UI.sheet = b.dataset.sheet; UI.regQ = ''; renderTopbar(); renderRegistro(); $(`[data-sheet="${UI.sheet}"]`)?.focus(); },
     addRow: () => addInlineRow(),
   addKR: b => { const r = Calc.rows('okrs', UI.area).find(x => x.objetivo === b.dataset.obj); addInlineRow({ objetivo: b.dataset.obj, alineacion: r?.alineacion || '' }); },
   dupRow: b => dupRow(b.dataset.id),
@@ -180,7 +181,7 @@ const Actions = {
   presentArea: () => Slides.open(UI.presArea),
   slidePrev: () => Slides.go(Slides.i - 1), slideNext: () => Slides.go(Slides.i + 1), slideClose: () => Slides.close(),
   print: () => { if (Auth.isAdmin()) imprimir(); },
-  goSheet: b => { UI.sheet = b.dataset.sheet; UI.regQ = ''; goView('registro'); },
+  goSheet: b => { if (!rpComprobarAccesoSeccion(b.dataset.sheet)) return; UI.sheet = b.dataset.sheet; UI.regQ = ''; goView('registro'); },
   adminTab: b => { UI.adminTab = b.dataset.tab; if (UI.view !== 'admin') goView('admin'); else renderAdmin(); },
   newUser: () => openUserForm(),
   editUser: b => openUserForm(b.dataset.id),

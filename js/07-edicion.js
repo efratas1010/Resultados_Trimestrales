@@ -2,6 +2,76 @@
 /* =======================================================================
    M\u00D3DULO 7 \u00B7 SECCI\u00D3N 1: REGISTRO
    ======================================================================= */
+
+/* Candados de flujo: solo Guardar seccion confirma el avance remoto. */
+const RP_FLUJO_SECCIONES = ['reflexion', 'reflexionPersonal', 'cierre', 'qqc', 'kpis', 'okrs'];
+let rpGuardandoSeccion = false;
+function rpContextoGuardado() {
+  return JSON.stringify(RP_FLUJO_SECCIONES.map(key => {
+    const p = Calc.camposPeriodoAnalisis(key === 'reflexionPersonal' ? 'reflexion' : key);
+    return [key, String(p.anio || ''), p.tipoPer || '', p.trimPer || ''];
+  }));
+}
+function rpSeccionConfirmada(key) {
+  if (typeof Cloud === 'undefined' || !Cloud.sectionProgressReady) return false;
+  const contexto = rpContextoGuardado();
+  return (Cloud.sectionProgress || []).some(r =>
+    r.usuario_id === Auth.user?.id && r.area_id === UI.areaId &&
+    r.contexto === contexto && r.seccion === key);
+}
+function rpPuedeAbrirSeccion(key) {
+  if (Auth.isAdmin()) return true;
+  const i = RP_FLUJO_SECCIONES.indexOf(key);
+  if (i < 0) return false;
+  return RP_FLUJO_SECCIONES.slice(0, i).every(rpSeccionConfirmada);
+}
+function rpPrimeraSeccionPendiente() {
+  return RP_FLUJO_SECCIONES.find(k => !rpSeccionConfirmada(k)) || RP_FLUJO_SECCIONES[0];
+}
+function rpComprobarAccesoSeccion(key) {
+  if (rpGuardandoSeccion) { toast('Espera a que termine Guardar secci\u00f3n.', 'error'); return false; }
+  if (rpPuedeAbrirSeccion(key)) return true;
+  toast('Primero presiona Guardar secci\u00f3n en las secciones anteriores.', 'error');
+  return false;
+}
+function rpBotonGuardarSeccion() {
+  const confirmada = rpSeccionConfirmada(UI.sheet);
+  const aviso = typeof Cloud !== 'undefined' && Cloud.sectionProgressError && !Auth.isAdmin()
+    ? '<p role="alert" style="color:#b5332a">No se pudo consultar el avance. Revisa la instalaci\u00f3n de la tabla de candados antes de guardar.</p>' : '';
+  return `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px">
+    <button type="button" class="btn primary" data-action="guardarSeccion" ${rpGuardandoSeccion ? 'disabled' : ''}>${rpGuardandoSeccion ? 'Guardando...' : 'Guardar secci\u00f3n'}</button>
+    <span role="status" aria-live="polite">${Auth.isAdmin() ? 'Administrador: acceso libre a todas las secciones.' : confirmada ? 'Secci\u00f3n guardada. Puedes continuar.' : 'El autoguardado no desbloquea la siguiente secci\u00f3n.'}</span>
+  </div>${aviso}`;
+}
+async function rpGuardarSeccionActual() {
+  if (rpGuardandoSeccion || !rpComprobarAccesoSeccion(UI.sheet)) return;
+  if (!UI.unidadId || !UI.areaId || !Auth.canAccess(UI.unidadId, UI.areaId)) {
+    toast('Selecciona una unidad y un \u00e1rea autorizadas.', 'error'); return;
+  }
+  if (typeof Cloud === 'undefined' || typeof Cloud.saveSectionConfirmed !== 'function') {
+    toast('Falta instalar el adaptador compatible con Guardar secci\u00f3n.', 'error'); return;
+  }
+  const key = UI.sheet, areaId = UI.areaId, unidadId = UI.unidadId, contexto = rpContextoGuardado();
+  const root = $('#view-registro');
+  document.activeElement?.blur?.();
+  rpGuardandoSeccion = true;
+  if (root) { root.inert = true; root.setAttribute('aria-busy', 'true'); }
+  const button = root?.querySelector('[data-action="guardarSeccion"]');
+  if (button) { button.disabled = true; button.textContent = 'Guardando...'; }
+  try {
+    /* Permite terminar el debounce existente de los campos de reflexion. */
+    await new Promise(resolve => setTimeout(resolve, 350));
+    await Cloud.saveSectionConfirmed({key, areaId, unidadId, contexto});
+    toast(Auth.isAdmin() ? 'Secci\u00f3n guardada.' : 'Secci\u00f3n guardada. La siguiente est\u00e1 habilitada.', 'ok');
+  } catch (e) {
+    toast('No se desbloque\u00f3 la siguiente secci\u00f3n: ' + e.message, 'error');
+  } finally {
+    rpGuardandoSeccion = false;
+    if (root) { root.inert = false; root.removeAttribute('aria-busy'); }
+    if (UI.view === 'registro') renderRegistro();
+  }
+}
+
 function rpHojasEdicion() {
   const orden = ['reflexion', 'reflexionPersonal', 'cierre', 'qqc', 'kpis', 'okrs'];
   const hojas = [...SHEETS, RP_SECCION_PERSONAL]
@@ -265,6 +335,7 @@ function renderRegistro() {
   }
 
   UI.area = areaObj.nombre;
+  if (!rpPuedeAbrirSeccion(UI.sheet)) UI.sheet = rpPrimeraSeccionPendiente();
 
   const hojasCompletas = rpHojasEdicion().filter(
     hoja =>
@@ -324,9 +395,10 @@ function renderRegistro() {
               aria-selected="${hoja.key === UI.sheet}"
               data-action="sheet"
               data-sheet="${hoja.key}"
+              ${!rpPuedeAbrirSeccion(hoja.key) ? 'disabled aria-disabled="true" title="Guarda las secciones anteriores para continuar"' : ''}
             >
               ${icon(hoja.icon, 16)}
-              ${esc(hoja.corto)}
+              ${!rpPuedeAbrirSeccion(hoja.key) ? '&#128274; ' : ''}${esc(hoja.corto)}
 
               <span
                 class="tab-dot ${
@@ -352,6 +424,7 @@ function renderRegistro() {
         areaObj.nombre,
         SHEET(UI.sheet)
       )}
+      ${rpBotonGuardarSeccion()}
     </div>
   `;
 

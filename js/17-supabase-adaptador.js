@@ -99,6 +99,7 @@ const Cloud = {
     this.baseline={};
     for(const [t,rows] of Object.entries(db)) this.baseline[t]=new Map(rows.map(r=>[String(r.id),r]));
     this.ready=true;this.pending=false;this.draftCount=0;
+    await this.loadSectionProgress();
   },
   uuid(obj) { if(!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(obj.id))) obj.id=crypto.randomUUID(); return obj.id; },
   uuidOrdenado(posicion=0) {
@@ -221,6 +222,70 @@ const Cloud = {
     if(error||data?.error)throw new Error(data?.error||error.message);
     return data;
   }
+};
+
+
+/* Persistencia exclusiva del avance confirmado por el boton. No usa localStorage. */
+Cloud.sectionProgress = [];
+Cloud.sectionProgressReady = false;
+Cloud.sectionProgressError = '';
+Cloud.loadSectionProgress = async function() {
+  this.sectionProgress = [];
+  this.sectionProgressReady = false;
+  this.sectionProgressError = '';
+  try {
+    const rows = [];
+    for (let offset = 0;; offset += 500) {
+      const page = await this.checked(this.client.from('avance_secciones_portafolio')
+        .select('usuario_id,area_id,contexto,seccion,guardado_en')
+        .eq('usuario_id', Auth.user.id)
+        .order('area_id').order('contexto').order('seccion').range(offset, offset + 499));
+      rows.push(...page);
+      if (page.length < 500) break;
+    }
+    this.sectionProgress = rows;
+    this.sectionProgressReady = true;
+  } catch (e) {
+    this.sectionProgressError = e.message;
+    console.warn('Avance de secciones no disponible:', e.message);
+  }
+};
+Cloud.saveSectionConfirmed = async function({key, areaId, unidadId, contexto}) {
+  if (!this.ready || !Auth.user) throw new Error('La conexi\u00f3n no est\u00e1 lista.');
+  if (!Auth.canAccess(unidadId, areaId)) throw new Error('No tienes acceso a esta unidad y \u00e1rea.');
+  if (!RP_FLUJO_SECCIONES.includes(key)) throw new Error('Secci\u00f3n no v\u00e1lida.');
+  const usuarioId = Auth.user.id;
+  const esperar = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const limite = Date.now() + 30000;
+  clearTimeout(this.timer);
+  while (this.saving) {
+    if (Date.now() > limite) throw new Error('El guardado sigue ocupado. Intenta nuevamente.');
+    await esperar(50);
+  }
+  if (!Auth.isAdmin() && !this.sectionProgressReady) {
+    await this.loadSectionProgress();
+    if (!this.sectionProgressReady) throw new Error('No se pudo consultar el avance. Instala el SQL de candados y revisa los permisos.');
+  }
+  this.pending = true;
+  clearTimeout(this.timer);
+  await this.flush();
+  if (this.failed) throw new Error('Supabase rechaz\u00f3 el guardado.');
+  if (this.draftCount) throw new Error('Hay borradores incompletos sin enviar. Corr\u00edgelos antes de confirmar.');
+  if (this.pending || this.saving) throw new Error('A\u00fan hay cambios pendientes. Intenta nuevamente.');
+  if (!this.ready || Auth.user?.id !== usuarioId) throw new Error('La sesi\u00f3n cambi\u00f3 durante el guardado.');
+  if (Auth.isAdmin()) return {admin:true};
+  /* La funcion SQL vuelve a comprobar permisos y secuencia en el servidor. */
+  const row = await this.checked(this.client.rpc('confirmar_seccion_portafolio', {
+    p_area_id: areaId, p_contexto: contexto, p_seccion: key
+  }));
+  if (!row || row.usuario_id !== usuarioId || row.area_id !== areaId ||
+      row.contexto !== contexto || row.seccion !== key || !row.guardado_en) {
+    throw new Error('No se recibi\u00f3 una confirmaci\u00f3n v\u00e1lida del avance.');
+  }
+  this.sectionProgress = this.sectionProgress.filter(r => !(r.usuario_id === usuarioId &&
+    r.area_id === areaId && r.contexto === contexto && r.seccion === key));
+  this.sectionProgress.push(row);
+  return row;
 };
 
 // Sustituciones controladas de persistencia y autenticaci\u00F3n.

@@ -1901,11 +1901,12 @@ function camposReflexionPresentacion() {
 }
 
 function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F3n de \u00C1rea') {
-  const registro = F.get('reflexion').find(fila => fila.area === area);
+  const claveDatos = etiqueta === 'Reflexión Personal' ? 'reflexionPersonal' : 'reflexion';
+  const registro = F.get(claveDatos).find(fila => fila.area === area);
   const valor = String(registro?.[campo.k] ?? '');
   const tieneValor = valor.trim().length > 0;
   const unidad = unidadFiltroActual()?.nombre || registro?.unidadNegocio || '';
-  const periodo = Calc.textoPeriodoAnalisis('reflexion', true);
+  const periodo = Calc.textoPeriodoAnalisis(claveDatos, true);
   const numero = String(indice + 1).padStart(2, '0');
   const cantidad = String(total).padStart(2, '0');
 

@@ -270,7 +270,7 @@ function sheetCols(sh) {
 }
 function renderTablas(b) {
   const sh = SHEET(UI.tablaSheet);
-  b.innerHTML = `<div class="card"><div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px"><div class="field" style="min-width:240px"><label for="tblSheet">Hoja</label><select id="tblSheet" class="input" data-change="tablaSheet">${SHEETS.map(s => `<option value="${s.key}" ${s.key === sh.key ? 'selected' : ''}>${esc(s.nombre)}</option>`).join('')}</select></div><p class="small muted" style="margin:0 0 10px">Los filtros superiores de Unidad y \u00C1rea tambi\u00E9n aplican a esta tabla.</p></div><div id="dataTbl"></div></div>`;
+  b.innerHTML = `<div class="card"><div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px"><div class="field" style="min-width:240px"><label for="tblSheet">Hoja</label><select id="tblSheet" class="input" data-change="tablaSheet">${[...SHEETS, RP_SECCION_PERSONAL].map(s => `<option value="${s.key}" ${s.key === sh.key ? 'selected' : ''}>${esc(s.nombre)}</option>`).join('')}</select></div><p class="small muted" style="margin:0 0 10px">Los filtros superiores de Unidad y \u00C1rea tambi\u00E9n aplican a esta tabla.</p></div><div id="dataTbl"></div></div>`;
   mountTable($('#dataTbl'), { id: 'tbl_' + sh.key, cols: sheetCols(sh), rows: F.get(sh.key) });
 }
 function mountTable(box, { id, cols, rows }) {

@@ -95,6 +95,12 @@ const F = {
     );
   },
 
+  reflexionPersonal() {
+    return (S().data.reflexionPersonal || []).filter(r =>
+      this.a(r) && this.periodo(r, 'reflexionPersonal')
+    );
+  },
+
   okrs() {
     return S().data.okrs.filter(r =>
       this.a(r) &&
@@ -107,7 +113,7 @@ const F = {
     const f = UI.filters;
     return S().data.cierre.filter(r =>
       this.a(r) &&
-      this.periodo(r, 'qqc') &&
+      this.periodo(r, 'cierre') &&
       (!f.semaforo || Calc.semaforo(r) === f.semaforo)
     );
   },

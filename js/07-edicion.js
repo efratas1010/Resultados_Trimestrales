@@ -8,7 +8,7 @@ const RP_FLUJO_SECCIONES = ['reflexion', 'reflexionPersonal', 'cierre', 'qqc', '
 let rpGuardandoSeccion = false;
 function rpContextoGuardado() {
   return JSON.stringify(RP_FLUJO_SECCIONES.map(key => {
-    const p = Calc.camposPeriodoAnalisis(key === 'reflexionPersonal' ? 'reflexion' : key);
+    const p = Calc.camposPeriodoAnalisis(key);
     return [key, String(p.anio || ''), p.tipoPer || '', p.trimPer || ''];
   }));
 }
@@ -81,10 +81,10 @@ function rpHojasEdicion() {
       : h);
   return [...orden.map(k => hojas.find(h => h.key === k)).filter(Boolean), ...hojas.filter(h => !orden.includes(h.key))];
 }
-function rpRegistroContexto(area) { return Calc.rows('reflexion', area, UI.unidadId, UI.areaId)[0]; }
+function rpRegistroContexto(area, key = UI.sheet) { return Calc.rows(key, area, UI.unidadId, UI.areaId)[0]; }
 function rpAvanceEdicion(area, key, unidadId, areaId) {
   if (key !== 'reflexionPersonal') return Calc.avanceHoja(area, key, unidadId, areaId);
-  const r = rpRegistroContexto(area), campos = RP_SECCION_PERSONAL.cols.filter(c => c.t !== 'area');
+  const r = rpRegistroContexto(area, key), campos = RP_SECCION_PERSONAL.cols.filter(c => c.t !== 'area');
   return campos.filter(c => String(r?.[c.k] ?? '').trim()).length / campos.length;
 }
 function renderRegistro() {
@@ -636,7 +636,7 @@ const r = {
   areaId: areaObj.id,
   area: areaObj.nombre,
 
-  ...(['kpis', 'okrs'].includes(sh.key) ? Calc.camposPeriodoAnalisis(sh.key) : {}),
+  ...(['cierre', 'kpis', 'okrs'].includes(sh.key) ? Calc.camposPeriodoAnalisis(sh.key) : {}),
   ...defaults(sh),
   ...preset
 };
@@ -796,8 +796,8 @@ function onReflInput(el) {
 
   areaId: UI.areaId,
   area: areaEdicionActual()?.nombre || UI.area,
-  ...Calc.camposPeriodoAnalisis('reflexion')
-}; S().data.reflexion.push(r); }
+  ...Calc.camposPeriodoAnalisis(UI.sheet)
+}; (S().data[UI.sheet] ||= []).push(r); }
   r[el.dataset.k] = el.value; $('#cnt_' + el.dataset.k).textContent = el.value.length + ' caracteres';
   setSaveStatus('saving'); saveRefl();
 }

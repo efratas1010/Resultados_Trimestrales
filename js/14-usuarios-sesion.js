@@ -75,7 +75,12 @@ const Auth = {
   },
   canArea(area) {
     if (this.isAdmin()) return true;
-    if (typeof UI !== 'undefined' && UI.unidadId && UI.areaId) return this.canAccess(UI.unidadId, UI.areaId);
+    const matches = (S().unidadesNegocio || []).flatMap(unidad =>
+      (unidad.areas || []).filter(item => item.nombre === area).map(item => ({ unidadId: unidad.id, areaId: item.id }))
+    );
+    // Los nombres duplicados no identifican un registro de forma inequívoca.
+    if (matches.length > 1) return false;
+    if (matches.length === 1) return this.canAccess(matches[0].unidadId, matches[0].areaId);
     return this.areas().includes(area);
   },
   defaultPw() { const a = this.db.users.find(x => x.usuario === 'admin'); return a && a.hash === pwHash(a.id, CONFIG.CLAVE_INICIAL); }

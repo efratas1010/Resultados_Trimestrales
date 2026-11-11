@@ -9,7 +9,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': 
 const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 const nf = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2 });
 const cf = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
-const toNum = v => { if (v === '' || v == null) return null; if (typeof v === 'number') return isFinite(v) ? v : null; const n = parseFloat(String(v).replace(/[$,%\s]/g, '')); return isNaN(n) ? null : n; };
+const toNum = v => { if (v === '' || v == null) return null; if (typeof v === 'number') return Number.isFinite(v) ? v : null; const raw = String(v).trim().replace(/[$%\s]/g, ''); const normalized = /^[-+]?\d{1,3}(,\d{3})+(\.\d+)?$/.test(raw) ? raw.replace(/,/g, '') : raw; if (!/^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(normalized)) return null; const n = Number(normalized); return Number.isFinite(n) ? n : null; };
 const fmtNum = v => { const n = toNum(v); return n == null ? '\u2014' : nf.format(n); };
 const fmtPct = v => v == null || isNaN(v) ? '\u2014' : nf.format(Math.round(v * 10) / 10) + '%';
 const fmtCur = v => { const n = toNum(v); return n == null ? '\u2014' : cf.format(n); };

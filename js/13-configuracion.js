@@ -215,7 +215,7 @@ function renderConfig() {
       <div class="banner" style="margin:14px 0 0">${icon('info', 16)}<span><b>No se eliminan ni duplican registros.</b> La migración únicamente agrega los identificadores de Unidad de negocio y Área destino.</span></div>
     </div>` : `<div class="card"><h3>Migración de información existente</h3><div class="empty-sm">${icon('check', 18)} No hay registros pendientes de migración.</div></div>`;
 
-  const periodosHTML = SHEETS.map(hoja => {
+  const periodosHTML = [...SHEETS, RP_SECCION_PERSONAL].map(hoja => {
     const periodo = Calc.periodoAnalisis(hoja.key);
     const prefijo = `pa_${hoja.key}`;
     return `

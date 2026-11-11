@@ -34,13 +34,11 @@ function unidadesEdicion() {
     return unidades;
   }
 
-  const areasPermitidas = Auth.areas();
-
   return unidades
     .map(unidad => ({
       ...unidad,
       areas: (unidad.areas || []).filter(area =>
-        areasPermitidas.includes(area.nombre)
+        Auth.canAccess(unidad.id, area.id)
       )
     }))
     .filter(unidad => unidad.areas.length);
@@ -90,11 +88,14 @@ function renderSidebar() {
   $('#brandName').textContent = CONFIG.APP_NOMBRE;
   $('#brandSub').textContent = S().empresa || '';
   $('#nav').innerHTML = '';
-  const myAreas = Auth.areas(), av = myAreas.map(a => Calc.avanceArea(a));
+  const myAreas = unidadesEdicion().flatMap(unidad =>
+    (unidad.areas || []).map(area => ({ nombre: area.nombre, unidadId: unidad.id, areaId: area.id }))
+  );
+  const av = myAreas.map(a => Calc.avanceArea(a.nombre, a.unidadId, a.areaId));
   $('#areaTitle').textContent = Auth.isAdmin() ? 'Avance de captura' : 'Mis \u00E1reas';
   $('#globalPct').textContent = av.length ? Math.round(avg(av)) + '%' : '';
-  $('#areaList').innerHTML = myAreas.map((a, i) => `<button type="button" class="area-item ${a === UI.area && UI.view === 'registro' ? 'active' : ''}" data-action="goArea" data-area="${esc(a)}" aria-label="${esc(a)}: ${Math.round(av[i])}% capturado">
-    <div class="row"><span>${esc(a)}</span><b>${Math.round(av[i])}%</b></div><div class="bar"><i style="width:${av[i]}%"></i></div></button>`).join('');
+  $('#areaList').innerHTML = myAreas.map((a, i) => `<button type="button" class="area-item ${a.unidadId === UI.unidadId && a.areaId === UI.areaId && UI.view === 'registro' ? 'active' : ''}" data-action="goArea" data-unidad="${esc(a.unidadId)}" data-area-id="${esc(a.areaId)}" data-area="${esc(a.nombre)}" aria-label="${esc(a.nombre)}: ${Math.round(av[i])}% capturado">
+    <div class="row"><span>${esc(a.nombre)}</span><b>${Math.round(av[i])}%</b></div><div class="bar"><i style="width:${av[i]}%"></i></div></button>`).join('');
   const dark = document.documentElement.dataset.theme === 'dark';
   $('#themeBtn').innerHTML = icon(dark ? 'sun' : 'moon', 16); $('#themeBtn').title = dark ? 'Modo claro' : 'Modo oscuro'; $('#themeBtn').setAttribute('aria-label', $('#themeBtn').title);
   $('#menuBtn').innerHTML = icon('menu');

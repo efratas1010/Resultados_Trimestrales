@@ -47,7 +47,7 @@ const Calc = {
     return (x / m) * 100;
   },
   semaforoAuto(p) { if (p == null) return ''; const u = S().umbrales; return p >= u.verde ? 'Verde' : p >= u.amarillo ? 'Amarillo' : 'Rojo'; },
-  semaforo(r) { return r.semaforo && r.semaforo !== 'Autom\u00E1tico' ? r.semaforo : this.semaforoAuto(this.cumplimiento(r)); },
+  semaforo(r) { return this.semaforoAuto(this.cumplimiento(r)); },
   variacion(r) { const b = toNum(r.base), m = toNum(r.meta); if (b == null || m == null || b === 0) return null; return (m - b) / Math.abs(b) * 100; },
   variacionCierre(r) {
     const meta = toNum(r.meta), real = toNum(r.real);
@@ -76,7 +76,7 @@ const Calc = {
   infoSemaforo(r) {
     const cumplimiento = this.cumplimiento(r);
     const automatico = this.semaforoAuto(cumplimiento);
-    const manual = !!r.semaforo && r.semaforo !== 'Autom\u00E1tico';
+    const manual = false; // No aplicar colores manuales guardados.
     const vigente = this.semaforo(r);
     return { cumplimiento, automatico, vigente, manual, discrepancia: manual && automatico && automatico !== vigente };
   },
@@ -103,7 +103,13 @@ const Calc = {
     const acciones = (S().data.qqc || []).filter(coincideContexto);
     const usadas = new Set();
     return (S().data.cierre || [])
-      .filter(coincideContexto)
+      .filter(r => {
+        if (!this.coincidePeriodoAnalisis(r, 'cierre')) return false;
+        if (unidadId && r.unidadNegocioId !== unidadId) return false;
+        if (areaId && r.areaId !== areaId) return false;
+        if (!unidadId && !areaId && area && r.area !== area) return false;
+        return true;
+      })
       .filter(cierre => this.esPrioritarioQQC(cierre))
       .map(cierre => {
         const infoSemaforo = this.infoSemaforo(cierre);
@@ -189,6 +195,12 @@ const rows = this.rows(
   unidadId,
   areaId
 );
+    if (key === 'reflexionPersonal') {
+      const r = rows[0];
+      if (!r) return 0;
+      const campos = RP_SECCION_PERSONAL.cols.filter(c => c.t !== 'area').map(c => c.k);
+      return campos.length ? campos.filter(k => String(r[k] ?? '').trim()).length / campos.length : 0;
+    }
     if (key === 'reflexion') { const r = rows[0]; if (!r) return 0; const f = ['logros', 'aprendizajes', 'obstaculos', 'distinto', 'apoyos']; return f.filter(k => String(r[k] || '').trim()).length / f.length; }
     if (key === 'qqc') {
       if (!rows.length) return 1;
@@ -203,7 +215,8 @@ const rows = this.rows(
   unidadId = UI.unidadId,
   areaId = UI.areaId
 ) {
-  return SHEETS.reduce(
+  const hojas = [...SHEETS, RP_SECCION_PERSONAL];
+  return hojas.reduce(
     (total, hoja) =>
       total +
       this.avanceHoja(
@@ -213,7 +226,7 @@ const rows = this.rows(
         areaId
       ),
     0
-  ) / SHEETS.length * 100;
+  ) / hojas.length * 100;
 }
 };
 function groupBy(rows, k) { return rows.reduce((g, r) => { const key = String(r[k] || '(Sin objetivo)').trim(); (g[key] ||= []).push(r); return g; }, {}); }

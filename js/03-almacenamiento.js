@@ -48,7 +48,7 @@ const Store = {
       },
 
       periodosAnalisis: Object.fromEntries(
-        SHEETS.map(sheet => [
+        [...SHEETS, RP_SECCION_PERSONAL].map(sheet => [
           sheet.key,
           {
             ...CONFIG.PERIODO_ANALISIS,
@@ -62,7 +62,7 @@ const Store = {
       ],
 
       data: Object.fromEntries(
-        SHEETS.map(sheet => [sheet.key, []])
+        [...SHEETS, RP_SECCION_PERSONAL].map(sheet => [sheet.key, []])
       )
     };
   },
@@ -90,7 +90,7 @@ const Store = {
           },
 
           periodosAnalisis: Object.fromEntries(
-            SHEETS.map(sheet => [
+            [...SHEETS, RP_SECCION_PERSONAL].map(sheet => [
               sheet.key,
               {
                 ...base.periodosAnalisis[sheet.key],

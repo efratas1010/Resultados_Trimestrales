@@ -17,7 +17,7 @@ function exportExcel(vacia = false) {
       const ins = [['Instrucciones de llenado'], [''], ['1. Captura una fila por registro en cada hoja. La columna "Área" debe coincidir con la lista de áreas.'], ['2. No repitas Año, Tipo de periodo ni Trimestre: cada hoja usa el periodo configurado para su sección.'], [`3. Periodos vigentes: ${Calc.resumenPeriodosAnalisis()}`], ['4. Columnas calculadas (% Cumplimiento, Trimestre, Variación) se recalculan al importar.'], ['5. Semáforo del cierre: escribe Automático, Verde, Amarillo o Rojo.'], [`6. Listas válidas → Estatus: ${CONFIG.LISTAS.estatus.join(', ')} | Frecuencia: ${CONFIG.LISTAS.frecuencia.join(', ')}`], ['7. OKRs: una fila por Key Result; repite el mismo Objetivo para agruparlos (2 a 5 KRs).']];
       const ws = XLSX.utils.aoa_to_sheet(ins); ws['!cols'] = [{ wch: 120 }]; XLSX.utils.book_append_sheet(wb, ws, 'Instrucciones');
     }
-    SHEETS.forEach(sh => {
+    [...SHEETS, RP_SECCION_PERSONAL].forEach(sh => {
       const cols = vacia ? sh.cols.filter(c => !['anio', 'tipoPer', 'trimPer'].includes(c.k)) : sh.cols;
       const aoa = [cols.map(c => c.l)];
       if (!vacia) [...S().data[sh.key]].filter(r => Auth.canArea(r.area)).sort((a, b) => ord(a.area) - ord(b.area)).forEach(r => aoa.push(cols.map(c => exportVal(c, r))));
@@ -36,6 +36,11 @@ function exportExcel(vacia = false) {
 }
 function matchSheet(name) {
   const n = norm(name);
+  // La importación de Reflexión Personal aún no cuenta con persistencia remota independiente.
+  // Rechazarla explícitamente evita clasificarla como Reflexión de Área.
+  if (n === norm(RP_SECCION_PERSONAL.hoja) || n === norm(RP_SECCION_PERSONAL.nombre)) {
+    throw new Error('La importación de Reflexión Personal está pendiente de integración con Supabase. No se importó el archivo.');
+  }
   const exact = SHEETS.find(s => norm(s.hoja) === n || norm(s.nombre) === n); if (exact) return exact;
   const kw = [['okrs', ['okr']], ['kpis', ['kpi', 'sabana']], ['qqc', ['quien', 'qqc']], ['cierre', ['cierre']], ['reflexion', ['reflexion']]];
   const hit = kw.find(([, ws]) => ws.some(w => n.includes(w))); return hit ? SHEET(hit[0]) : null;

@@ -14,3 +14,55 @@
   .reg-prog{margin-left:0}
 }
 @media (max-width:560px){.kpi .val{font-size:1.6rem}.search{min-width:0;flex:1}}
+
+
+/* Inicio Chanitos */
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .chanitos-sidebar{display:flex;position:fixed;inset:0 auto 0 0;width:min(78vw,260px);height:100dvh;transform:translateX(-105%);transition:transform .28s var(--ease);box-shadow:18px 0 45px rgba(42,6,3,.34);overflow-y:auto}
+  .chanitos-sidebar.open{transform:none}
+  .app.is-home .topbar{display:flex;position:absolute;top:10px;left:10px;z-index:25;padding:0;background:none;border:0;backdrop-filter:none}
+  .app.is-home .topbar>*:not(.tb-left){display:none}.app.is-home .tb-left>div,.app.is-home #homeBtn{display:none}.app.is-home .menu-btn{display:grid;background:rgba(36,18,12,.74);color:#fff;border:1px solid rgba(255,255,255,.28);box-shadow:0 6px 20px rgba(0,0,0,.22)}
+  .chanitos-home{min-height:100dvh;grid-template-rows:auto minmax(310px,1fr) auto auto;padding:62px 14px 12px;background-position:54% center}
+  .home-shade{background:linear-gradient(90deg,rgba(255,252,246,.95),rgba(255,249,238,.72) 58%,rgba(63,19,8,.28)),linear-gradient(0deg,rgba(95,12,7,.62),transparent 42%)}
+  .home-date{position:absolute;top:17px;left:60px;right:auto;margin:0;font-size:.61rem}
+  .home-user-chip{top:10px;right:10px;padding:6px}.home-user-chip>div{display:none}.home-user-chip .home-icon-btn:first-of-type{display:none}
+  .home-welcome{max-width:100%;align-self:center;padding:12px 3px}.home-kicker{font-size:.59rem;letter-spacing:.11em;margin-bottom:14px}.home-welcome>p{font-size:.86rem}.home-welcome h1{font-size:clamp(2.45rem,12vw,4.2rem);max-width:560px}.home-position{font-size:.72rem;margin-top:14px}.home-welcome blockquote{font-size:.84rem;margin-top:15px}
+  .home-password{position:static;align-self:start;margin-bottom:0}
+  .home-monitor{border-radius:15px;padding:12px 10px 10px}.home-monitor-head{align-items:flex-start}.home-monitor-head p{display:none}.home-monitor-head h2{font-size:.91rem}
+  .home-units{grid-template-columns:1fr;max-height:310px}.home-unit{padding:9px}.home-bars{min-height:98px}.home-bar{grid-template-rows:14px 58px 24px}.home-bar-track{height:58px}
+  .home-footer{font-size:.51rem}.home-footer b{display:none}
+}
+@media (max-width:560px){
+  .home-date{display:none}.home-user-chip .avatar{width:29px;height:29px}.home-icon-btn{width:25px;height:25px}
+  .chanitos-home{padding-top:55px}.home-welcome h1{font-size:clamp(2.2rem,13vw,3.25rem)}.home-welcome h1 span{font-size:.62em}.home-position{max-width:92%;text-align:center}
+  .home-edit-cta{width:100%;justify-content:center}.home-edit-cta>span{min-width:0;flex:1}
+}
+
+/* Ajuste de distribucion para Edicion y Dashboard.
+   Mantener Inicio sin cambios. */
+@media (min-width:901px) {
+  .app:not(.is-home) > .main {
+    min-width:0;
+    width:100%;
+  }
+  .app:not(.is-home) > .main > .content {
+    min-width:0;
+    width:100%;
+    max-width:1500px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+}
+@media (max-width:900px) {
+  .app:not(.is-home) > .main {
+    min-width:0;
+    width:100%;
+  }
+  .app:not(.is-home) > .main > .content {
+    min-width:0;
+    width:100%;
+    margin-left:0;
+    margin-right:0;
+  }
+}

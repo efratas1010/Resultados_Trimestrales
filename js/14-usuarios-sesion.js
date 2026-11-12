@@ -121,57 +121,70 @@ function enterApp() {
   $('#login').hidden = true; $('#login').innerHTML = ''; $('#app').hidden = false;
   UI.view = 'inicio'; UI.area = Auth.areas()[0] || null; UI.sheet = 'cierre';
   renderAll(); setSaveStatus('ok');
-  toast(`${greet()}, ${Auth.user.nombre.split(' ')[0]}`, 'ok');
+  const nombreSesion = String(Auth.user?.nombre || Auth.user?.nombreCompleto || Auth.user?.displayName || Auth.user?.usuario || '').trim();
+  toast(`${greet()}, ${nombreSesion.split(/\s+/)[0] || 'bienvenido'}`, 'ok');
 }
 const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; };
 
 /* ----- Pantalla principal (Inicio) ----- */
 function renderInicio() {
   const u = Auth.user, admin = Auth.isAdmin();
-  const unidades = Auth.unidades();
-  UI.homeUnidadId ||= '';
-  if (UI.homeUnidadId && !unidades.some(x => x.id === UI.homeUnidadId)) UI.homeUnidadId = '';
-  const unidad = unidades.find(x => x.id === UI.homeUnidadId) || null;
-  const areas = unidad ? Auth.areasUnidad(unidad.id) : [];
+  const unidades = admin ? (S().unidadesNegocio || []) : Auth.unidades();
+  const nombre = String(u?.nombre || u?.nombreCompleto || u?.displayName || u?.usuario || '').trim();
+  const puesto = String(u?.puesto || CONFIG.ROLES[u?.rol]?.nombre || '').trim();
+  const rol = CONFIG.ROLES[u?.rol]?.nombre || u?.rol || '';
+  const fecha = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+  const capitalizar = texto => texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : '';
+  const claseAvance = p => p >= 85 ? 'ok' : p >= 50 ? 'mid' : 'low';
 
-  const av = areas.map(a => Calc.avanceArea(a.nombre, unidad.id, a.id));
-  const prom = avg(av) ?? 0;
-  const pend = areas.map(a => [a, SHEETS.filter(sh => Calc.avanceHoja(a.nombre, sh.key, unidad.id, a.id) < 1)]);
-
-  const mods = [
-    ['registro', 'm-edit', 'pen', 'Edición de información', admin ? 'Captura o corrige la información por unidad de negocio y área.' : 'Captura la información de las unidades y áreas que tienes asignadas.', 'Entrar', ''],
-    ...(admin ? [
-      ['presentacion', 'm-dash', 'chart', 'Dashboard', 'Consulta resultados, comparativos y presentación ejecutiva.', 'Abrir', ''],
-      ['admin', 'm-admin', 'sliders', 'Administración', 'Gestiona usuarios, accesos, unidades de negocio, áreas y configuración.', 'Gestionar', '']
-    ] : [])
-  ];
-
-  const unidadSelector = `
-    <div class="home-progress-filter">
-      <div class="field" style="min-width:280px">
-        <label for="homeUnidadSel">Unidad de negocio para ver avances</label>
-        <select id="homeUnidadSel" class="input" data-change="homeUnidad">
-          <option value="">Selecciona una unidad…</option>
-          ${unidades.map(x => `<option value="${esc(x.id)}" ${x.id === UI.homeUnidadId ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}
-        </select>
-      </div>
-    </div>`;
+  const unidadesHTML = unidades.map((unidad, unidadIndex) => {
+    const areas = admin ? (unidad.areas || []) : Auth.areasUnidad(unidad.id);
+    const avances = areas.map(area => Math.max(0, Math.min(100, Math.round(Calc.avanceArea(area.nombre, unidad.id, area.id)))));
+    const promedio = avances.length ? Math.round(avg(avances)) : 0;
+    return `<article class="home-unit ${unidadIndex % 2 ? 'producer' : ''}" style="--unit-delay:${unidadIndex * 70}ms">
+      <header class="home-unit-head">
+        <span class="home-unit-icon">${icon(unidadIndex % 2 ? 'layers' : 'chart', 17)}</span>
+        <div><h3>${esc(unidad.nombre)}</h3><small>${areas.length} ${areas.length === 1 ? 'área' : 'áreas'}</small></div>
+        <span class="home-unit-total ${claseAvance(promedio)}" title="Avance general de ${esc(unidad.nombre)}">${promedio}%</span>
+      </header>
+      ${areas.length ? `<div class="home-bars" role="list" aria-label="Avance de ${esc(unidad.nombre)}">${areas.map((area, i) => {
+        const p = avances[i], estado = claseAvance(p);
+        return `<button type="button" class="home-bar ${estado}" data-action="goArea" data-unidad="${esc(unidad.id)}" data-area-id="${esc(area.id)}" data-area="${esc(area.nombre)}" role="listitem" aria-label="${esc(area.nombre)}: ${p}% de captura">
+          <strong>${p}%</strong><span class="home-bar-track"><i style="height:${p}%"></i></span><small>${esc(area.nombre)}</small>
+        </button>`;
+      }).join('')}</div>` : `<div class="home-unit-empty">${icon('info', 16)} Las áreas aparecerán aquí al agregarlas.</div>`}
+    </article>`;
+  }).join('');
 
   $('#view-inicio').innerHTML = `
-    ${Auth.user.debeCambiar ? `<div class="banner" role="note">${icon('key')}<span><b>Por seguridad, cambia tu contraseña inicial.</b></span><button type="button" class="btn sm" data-action="myAccount">Cambiar ahora</button></div>` : ''}
-    <div class="home-only">
-      <div class="modules ${mods.length === 1 ? 'one' : ''}">${mods.map(([v, cls, ic, t, d, go, extra], i) => `<button type="button" class="module ${cls}" style="animation-delay:${i * 90}ms" data-action="nav" data-view="${v}"><div class="m-ic">${icon(ic, 26)}</div><h3>${t}</h3><p>${d}</p>${extra || ''}<span class="m-go">${go}${icon('arrowR', 18)}</span></button>`).join('')}</div>
-
-      <div class="prog-sec">
-        <div class="prog-head"><div><h3>Avance de captura</h3><span class="small muted">Selecciona la unidad de negocio que deseas revisar.</span></div>${unidad ? `<span class="pill azul"><i></i>${esc(unidad.nombre)} · Global ${Math.round(prom)}%</span>` : ''}</div>
-        ${unidadSelector}
-
-        ${!unidad ? `<div class="empty-sm" style="margin-top:12px">${icon('layers', 18)} Selecciona una unidad de negocio para mostrar sus áreas y avances.</div>` :
-          !areas.length ? `<div class="empty-sm" style="margin-top:12px">${icon('info', 18)} ${esc(unidad.nombre)} todavía no tiene áreas dadas de alta.</div>` :
-          `<div class="prog-cards" style="margin-top:12px">${areas.map((a, i) => { const p = Math.round(av[i]), c = p >= 100 ? 'ok' : p >= 50 ? 'mid' : 'low'; return `<button type="button" class="pcard ${c}" style="animation-delay:${200 + i * 50}ms" data-action="goArea" data-unidad="${esc(unidad.id)}" data-area-id="${esc(a.id)}" data-area="${esc(a.nombre)}"><div class="pc-top"><b>${esc(a.nombre)}</b><span>${p}%</span></div><div class="pc-bar"><i style="width:${p}%"></i></div><small>${SHEETS.length - pend[i][1].length} de ${SHEETS.length} hojas${p >= 100 ? ' · Completa' : ''}</small></button>`; }).join('')}</div>`}
+    <div class="chanitos-home" style="--home-bg:url('../assets/almacen-chanitos.jpeg')">
+      <div class="home-shade" aria-hidden="true"></div>
+      <div class="home-date">${esc(capitalizar(fecha))}</div>
+      <div class="home-user-chip">
+        <span class="avatar">${initials(nombre)}</span><div><b>${esc(nombre)}</b><small>${esc(rol)}</small></div>
+        <button type="button" class="home-icon-btn" data-action="myAccount" aria-label="Perfil y contraseña" title="Perfil y contraseña">${icon('key', 15)}</button>
+        <button type="button" class="home-icon-btn" data-action="logout" aria-label="Cerrar sesión" title="Cerrar sesión">${icon('logout', 15)}</button>
       </div>
+
+      <section class="home-welcome" aria-labelledby="homeWelcomeTitle">
+        <span class="home-kicker">Plataforma Estratégica · Frutas Chanitos</span>
+        <p>${greet()}</p>
+        <h1 id="homeWelcomeTitle"><span>¡Bienvenido de nuevo,</span>${esc(nombre)}!</h1>
+        ${puesto ? `<strong class="home-position">${esc(puesto)}</strong>` : ''}
+        <blockquote>“La estrategia también da frutos,<br>cuando se trabaja con propósito.”</blockquote>
+      </section>
+
+      ${Auth.user.debeCambiar ? `<div class="home-password" role="note">${icon('key', 16)}<span><b>Cambia tu contraseña inicial.</b></span><button type="button" data-action="myAccount">Cambiar ahora</button></div>` : ''}
+
+      ${admin ? `<section class="home-monitor" aria-labelledby="homeMonitorTitle">
+        <header class="home-monitor-head"><div><span>Monitor compacto</span><h2 id="homeMonitorTitle">Avance por unidad de negocio</h2></div><p>Captura completada por área</p></header>
+        <div class="home-units">${unidadesHTML || `<div class="home-monitor-empty">${icon('layers', 18)} Las unidades y sus áreas aparecerán automáticamente al configurarlas.</div>`}</div>
+      </section>` : `<button type="button" class="home-edit-cta" data-action="nav" data-view="registro">${icon('pen', 18)}<span><b>Ir a Edición</b><small>Captura la información de tus áreas</small></span>${icon('arrowR', 18)}</button>`}
+
+      <footer class="home-footer"><span>Cultivamos energía… cosechamos sueños.</span><b>Frutas Chanitos</b></footer>
     </div>`;
 }
+
 function logList(items) {
   if (!items.length) return '<div class="empty-sm">Sin actividad registrada.</div>';
   return `<div class="log">${items.map(l => `<div class="log-item"><span class="avatar sm">${initials(l.u)}</span><div><b>${esc(l.accion)}</b>${l.detalle ? ` <span class="muted">· ${esc(l.detalle)}</span>` : ''}<div class="small muted">${esc(l.u)}</div></div><span class="small muted" style="white-space:nowrap">${fmtDT(l.t)}</span></div>`).join('')}</div>`;

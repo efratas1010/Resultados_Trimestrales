@@ -1149,11 +1149,11 @@ function kpisSlideHTML(area) {
               .map(registro => `
                 <tr>
                   <td><b>${esc(registro.kpi)}</b></td>
-                  <td>${registro.unidad ? esc(registro.unidad) : '<span class="muted">â€”</span>'}</td>
+                  <td>${registro.unidad ? esc(registro.unidad) : '<span class="muted">—</span>'}</td>
                   <td class="num" style="background:#f0fdf4;color:#166534"><b>${fmtNum(registro.metaVerde)}</b></td>
                   <td class="num" style="background:#fefce8;color:#854d0e"><b>${fmtNum(registro.metaAmarilla)}</b></td>
                   <td class="num" style="background:#fef2f2;color:#991b1b"><b>${fmtNum(registro.metaRoja)}</b></td>
-                  <td>${registro.responsable ? esc(registro.responsable) : '<span class="muted">â€”</span>'}</td>
+                  <td>${registro.responsable ? esc(registro.responsable) : '<span class="muted">—</span>'}</td>
                 </tr>
               `)
               .join('')}
@@ -1902,6 +1902,7 @@ function camposReflexionPresentacion() {
 
 function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F3n de \u00C1rea') {
   const claveDatos = etiqueta === 'Reflexión Personal' ? 'reflexionPersonal' : 'reflexion';
+  const esReflexionPersonal = claveDatos === 'reflexionPersonal';
   const registro = F.get(claveDatos).find(fila => fila.area === area);
   const valor = String(registro?.[campo.k] ?? '');
   const tieneValor = valor.trim().length > 0;
@@ -1919,6 +1920,7 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
         --rx-copy-size: 28px;
         --rx-copy-leading: 1.42;
         --rx-title-size: 38px;
+        --rx-subtitle-size: 17px;
         --rx-prompt-size: 15px;
         --rx-meta-label-size: 10px;
         --rx-meta-value-size: 14px;
@@ -1981,6 +1983,14 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
         font-size: var(--rx-title-size);
         line-height: 1.03;
         letter-spacing: -.035em;
+      }
+
+      #slides .rx-subtitle {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: var(--rx-subtitle-size);
+        font-weight: 700;
+        line-height: 1.25;
       }
 
       #slides .rx-prompt {
@@ -2127,7 +2137,8 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
       <header class="rx-head">
         <div class="rx-heading">
           <span class="rx-eyebrow">${esc(etiqueta)}</span>
-          <h2 class="rx-title">${esc(campo.l)}</h2>
+          <h2 class="rx-title">${esc(esReflexionPersonal && campo.badge ? campo.badge : campo.l)}</h2>
+          ${esReflexionPersonal ? `<p class="rx-subtitle">${esc(campo.l)}</p>` : ''}
           ${campo.help ? `<p class="rx-prompt">${esc(campo.help)}</p>` : ''}
         </div>
 

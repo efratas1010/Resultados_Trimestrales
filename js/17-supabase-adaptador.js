@@ -29,11 +29,11 @@ const Cloud = {
     if(sh.key!=='qqc') return sh.cols.filter(c=>!['area','anio','tipoPer','trimPer'].includes(c.k)&&c.t!=='calc');
     return [
       {k:'cierreId',l:'ID de Cierre',t:'text'},
-      {k:'semaforo',l:'SemÃ¡foro origen',t:'text'},
+      {k:'semaforo',l:'Semáforo origen',t:'text'},
       {k:'indicador',l:'Indicador / problema',t:'text'},
       {k:'responsable',l:'Responsable',t:'text'},
-      {k:'accion',l:'AcciÃ³n',t:'textarea'},
-      {k:'cuando',l:'CuÃ¡ndo',t:'text'},
+      {k:'accion',l:'Acción',t:'textarea'},
+      {k:'cuando',l:'Cuándo',t:'text'},
       {k:'resultado',l:'Resultado esperado',t:'textarea'},
       {k:'estatus',l:'Estatus',t:'text'},
       {k:'observaciones',l:'Observaciones',t:'textarea'}
@@ -78,7 +78,7 @@ const Cloud = {
     const tipoPeriodo=cfg.periodo_analisis_tipo==='Trimestral'?'Trimestral':'Anual';
     const anioConfigurado = cfg.periodo_analisis_anio ?? cfg.anio_planeacion ?? CONFIG.PERIODO_ANALISIS?.anio;
     if (anioConfigurado == null || String(anioConfigurado).trim() === '') {
-      throw new Error('Falta configurar el aÃ±o del periodo de anÃ¡lisis en Supabase. No se asignarÃ¡ un aÃ±o automÃ¡ticamente.');
+      throw new Error('Falta configurar el año del periodo de análisis en Supabase. No se asignará un año automáticamente.');
     }
     const periodoLegacy={
       anio:String(anioConfigurado),
@@ -116,7 +116,7 @@ const Cloud = {
       state.data[key]=db[spec.table].map(row=>{
         const r=baseRecord(row);
         for(const [local,remote] of Object.entries(spec.map))r[local]=row[remote]??'';
-        if(key==='cierre')r.semaforo=row.semaforo_forzado||'AutomÃ¡tico';
+        if(key==='cierre')r.semaforo=row.semaforo_forzado||'Automático';
         if(key==='okrs')r.alineacion=this.objectives.find(o=>o.id===row.objetivo_estrategico_id)?.nombre||'';
         return r;
       });
@@ -424,27 +424,27 @@ openUserForm=function(id){
 };
 window.addEventListener('beforeunload',e=>{if(Cloud.pending||Cloud.saving||Cloud.draftCount){e.preventDefault();e.returnValue='';}});
 
-// ReflexiÃ³n de Ãrea y ReflexiÃ³n Personal usan periodos independientes,
+// Reflexión de Área y Reflexión Personal usan periodos independientes,
 // pero se consolidan de forma segura en la tabla remota de reflexiones.
 
-// Excel: conserva el contexto explÃ­cito, incluye las seis secciones operativas
+// Excel: conserva el contexto explícito, incluye las seis secciones operativas
 // y no borra bloques ausentes del archivo.
 exportExcel=function(vacia=false){
   if(!excelOk())return;
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-    [`Plantilla Supabase. Periodos por secciÃ³n: ${Calc.resumenPeriodosAnalisis()}`],
-    ['No cambies los encabezados. ID vacÃ­o crea una fila; ID existente actualiza esa misma fila.'],
-    ['En filas nuevas no se repiten AÃ±o, Tipo de periodo ni Trimestre; la aplicaciÃ³n usa la configuraciÃ³n de cada secciÃ³n.'],
-    ['Las filas ausentes NO se eliminan. No se importan configuraciÃ³n ni usuarios.'],
-    ['ReflexiÃ³n de Ãrea y ReflexiÃ³n Personal: una fila por Unidad + Ãrea + Periodo.'],
-    ['QuiÃ©nâ€“QuÃ©â€“CuÃ¡ndo: conserva ID de Cierre para permitir exportar y reimportar sin perder la relaciÃ³n.']
+    [`Plantilla Supabase. Periodos por sección: ${Calc.resumenPeriodosAnalisis()}`],
+    ['No cambies los encabezados. ID vacío crea una fila; ID existente actualiza esa misma fila.'],
+    ['En filas nuevas no se repiten Año, Tipo de periodo ni Trimestre; la aplicación usa la configuración de cada sección.'],
+    ['Las filas ausentes NO se eliminan. No se importan configuración ni usuarios.'],
+    ['Reflexión de Área y Reflexión Personal: una fila por Unidad + Área + Periodo.'],
+    ['Quién–Qué–Cuándo: conserva ID de Cierre para permitir exportar y reimportar sin perder la relación.']
   ]),'Instrucciones');
   for(const sh of Cloud.dataSheets()){
     const cols=Cloud.excelCols(sh);
     const headers=vacia
-      ? ['ID','Unidad de negocio','Ãrea',...cols.map(c=>c.l)]
-      : ['ID','Unidad de negocio','Ãrea','AÃ±o','Tipo de periodo','Trimestre del periodo',...cols.map(c=>c.l)];
+      ? ['ID','Unidad de negocio','Área',...cols.map(c=>c.l)]
+      : ['ID','Unidad de negocio','Área','Año','Tipo de periodo','Trimestre del periodo',...cols.map(c=>c.l)];
     const rows=vacia?[]:(S().data[sh.key]||[]).filter(r=>Auth.canAccess(r.unidadNegocioId,r.areaId)).map(r=>[r.id,r.unidadNegocio,r.area,r.anio,r.tipoPer,r.trimPer,...cols.map(c=>exportVal(c,r))]);
     const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
     ws['!cols']=headers.map((h,i)=>({wch:i===0?38:Math.max(18,Math.min(42,String(h).length+4))}));
@@ -465,27 +465,27 @@ importExcel=async function(file){
         const src=rows[i];if(Object.values(src).every(v=>String(v).trim()===''))continue;
         const context=`${sh.hoja}, fila ${i+2}`;
         const u=S().unidadesNegocio.find(u=>norm(u.nombre)===norm(src['Unidad de negocio']));
-        const a=u?.areas.find(a=>norm(a.nombre)===norm(src['Ãrea']));
-        if(!u||!a||!Auth.canAccess(u.id,a.id))throw new Error(context+': Unidad/Ãrea no vÃ¡lida o sin permiso.');
+        const a=u?.areas.find(a=>norm(a.nombre)===norm(src['Área']));
+        if(!u||!a||!Auth.canAccess(u.id,a.id))throw new Error(context+': Unidad/Área no válida o sin permiso.');
         const id=String(src.ID||'').trim()||uid();
         const old=(S().data[sh.key]||[]).find(x=>x.id===id);
         const periodo=old?{anio:old.anio,tipoPer:old.tipoPer,trimPer:old.trimPer||''}:Calc.camposPeriodoAnalisis(sh.key);
         const r={id,unidadNegocioId:u.id,unidadNegocio:u.nombre,areaId:a.id,area:a.nombre,...periodo};
-        if(!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(r.id))throw new Error(context+': ID no vÃ¡lido.');
+        if(!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(r.id))throw new Error(context+': ID no válido.');
         for(const c of cols){
           let v=src[c.l]??'';
           if(c.t==='date'&&typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);v=`${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
           r[c.k]=v;
         }
         if(old&&(old.areaId!==r.areaId||old.unidadNegocioId!==r.unidadNegocioId))throw new Error(context+': no se permite cambiar el contexto de un ID existente.');
-        if(!old&&src.ID)throw new Error(context+': ID desconocido. DÃ©jalo vacÃ­o para crear una fila.');
+        if(!old&&src.ID)throw new Error(context+': ID desconocido. Déjalo vacío para crear una fila.');
         const unique=sh.key+':'+r.id;if(seen.has(unique))throw new Error(context+': ID repetido en el archivo.');seen.add(unique);
         if(sh.key==='qqc'){
           const indicadorHeader=cols.find(c=>c.k==='indicador')?.l||'Indicador / problema';
           const cierreId=String(r.cierreId||'').trim();
           let cierre=(S().data.cierre||[]).find(c=>c.id===cierreId&&c.unidadNegocioId===r.unidadNegocioId&&c.areaId===r.areaId);
           if(!cierre)cierre=(S().data.cierre||[]).find(c=>c.unidadNegocioId===r.unidadNegocioId&&c.areaId===r.areaId&&Calc.coincidePeriodoAnalisis(c,'cierre')&&norm(c.indicador)===norm(src[indicadorHeader]||''));
-          if(!cierre)throw new Error(context+': el ID/Indicador no coincide con un registro del Cierre de la misma Unidad y Ãrea.');
+          if(!cierre)throw new Error(context+': el ID/Indicador no coincide con un registro del Cierre de la misma Unidad y Área.');
           r.cierreId=cierre.id;r.semaforo=Calc.semaforo(cierre);r.indicador=cierre.indicador;
         }
         if(!Cloud.serialize(sh.key,r))throw new Error(context+': faltan campos obligatorios o el periodo no existe.');
@@ -499,9 +499,9 @@ importExcel=async function(file){
       }
     }
     if(!changes.length)return toast('No se encontraron filas para importar.','error');
-    if(!confirm(`Importar ${changes.length} filas: ${changes.filter(c=>!c.old).length} nuevas y ${changes.filter(c=>c.old).length} actualizaciones. No se eliminarÃ¡n filas ausentes. Â¿Continuar?`))return;
+    if(!confirm(`Importar ${changes.length} filas: ${changes.filter(c=>!c.old).length} nuevas y ${changes.filter(c=>c.old).length} actualizaciones. No se eliminarán filas ausentes. ¿Continuar?`))return;
     for(const c of changes){if(c.old)Object.assign(c.old,c.r);else S().data[c.key].push(c.r);}
     Cloud.pending=true;await Cloud.flush();renderAll();
-    if(!Cloud.failed)toast(Cloud.draftCount?'ImportaciÃ³n aplicada; quedan borradores sin enviar.':'ImportaciÃ³n guardada en Supabase.',Cloud.draftCount?'error':'ok');
-  }catch(e){toast('No se importÃ³: '+e.message,'error');}
+    if(!Cloud.failed)toast(Cloud.draftCount?'Importación aplicada; quedan borradores sin enviar.':'Importación guardada en Supabase.',Cloud.draftCount?'error':'ok');
+  }catch(e){toast('No se importó: '+e.message,'error');}
 };

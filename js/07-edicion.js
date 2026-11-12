@@ -440,8 +440,9 @@ function sheetPanel(area, sh) {
   if (!sh.form) return head + `<div id="regTable"></div>`;
   // Reflexi\u00F3n: formulario de texto libre estructurado
   const r = rpRegistroContexto(area) || {};
+  const esReflexionPersonal = sh.key === 'reflexionPersonal';
   return head + `<div class="refl-grid">${sh.cols.filter(c => c.t !== 'area').map(c => `
-    <div class="refl-card"><label for="rf_${c.k}"><b>${esc(c.l)}</b></label>${c.badge ? `<span class="tag">${esc(c.badge)}</span>` : ''}<span class="hint">${esc(c.help || '')}</span>
+    <div class="refl-card"><label for="rf_${c.k}"><b>${esc(esReflexionPersonal && c.badge ? c.badge : c.l)}</b></label>${esReflexionPersonal ? `<span class="hint" style="font-weight:700;color:var(--muted)">${esc(c.l)}</span>` : c.badge ? `<span class="tag">${esc(c.badge)}</span>` : ''}<span class="hint">${esc(c.help || '')}</span>
       <textarea id="rf_${c.k}" class="input" data-input="refl" data-k="${c.k}" placeholder="Escribe aqu\u00ED\u2026">${esc(r[c.k] || '')}</textarea>
       <span class="cnt" id="cnt_${c.k}">${String(r[c.k] || '').length} caracteres</span></div>`).join('')}</div>
     <p class="hint" style="margin-top:12px">${icon('check', 14)} Se guarda autom\u00E1ticamente mientras escribes.</p>`;

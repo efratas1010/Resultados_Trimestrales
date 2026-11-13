@@ -171,7 +171,7 @@ function renderInicio() {
         <p>${greet()}</p>
         <h1 id="homeWelcomeTitle"><span>¡Bienvenido de nuevo,</span>${esc(nombre)}!</h1>
         ${puesto ? `<strong class="home-position">${esc(puesto)}</strong>` : ''}
-        <blockquote>“La estrategia también da frutos,<br>cuando se trabaja con propósito.”</blockquote>
+                <blockquote>“Cultivamos energía natural para alcanzar tus sueños,<br>ese es nuestro porqué.”</blockquote>
       </section>
 
       ${Auth.user.debeCambiar ? `<div class="home-password" role="note">${icon('key', 16)}<span><b>Cambia tu contraseña inicial.</b></span><button type="button" data-action="myAccount">Cambiar ahora</button></div>` : ''}

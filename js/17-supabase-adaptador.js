@@ -153,15 +153,78 @@ const Cloud = {
     const h=compacto.join('');
     return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
   },
+  periodKey(value={}) {
+    const tipo=value.tipoPer==='Trimestral'?'Trimestral':'Anual';
+    const trim=tipo==='Trimestral'?String(value.trimPer||''):'';
+    return `${String(value.anio||'')}|${tipo}|${trim}`;
+  },
+  periodLabel(value={}) {
+    const tipo=value.tipoPer==='Trimestral'?'Trimestral':'Anual';
+    return tipo==='Trimestral'
+      ? `${String(value.trimPer||'trimestre sin definir')} ${String(value.anio||'año sin definir')}`
+      : `Anual ${String(value.anio||'año sin definir')}`;
+  },
+  fieldLabel(key,field) {
+    const labels={
+      unidadNegocioId:'Unidad de negocio',areaId:'Área',periodo:'Periodo',alineacion:'Alineación estratégica',
+      kpi:'KPI',unidad:'Unidad',metaVerde:'Meta Verde',metaAmarilla:'Meta Amarilla',metaRoja:'Meta Roja',
+      responsable:'Responsable',indicador:'Indicador',meta:'Meta',real:'Real',objetivo:'Objetivo',kr:'Key Result',
+      cierreId:'ID de Cierre',semaforo:'Semáforo'
+    };
+    return SHEET(key)?.cols?.find(c=>c.k===field)?.l||labels[field]||field;
+  },
+  validationIssues(key,r) {
+    const spec=this.specFor(key),issues=[];
+    if(!spec)return [{field:'seccion',label:'Sección',reason:'no válida'}];
+    const empty=value=>value===null||value===undefined||String(value).trim()==='';
+    for(const field of spec.required){
+      if(empty(r[field]))issues.push({field,label:this.fieldLabel(key,field),reason:'campo obligatorio vacío'});
+    }
+    if(empty(r.unidadNegocioId))issues.push({field:'unidadNegocioId',label:this.fieldLabel(key,'unidadNegocioId'),reason:'sin identificador'});
+    if(empty(r.areaId))issues.push({field:'areaId',label:this.fieldLabel(key,'areaId'),reason:'sin identificador'});
+    const unit=S().unidadesNegocio.find(u=>u.id===r.unidadNegocioId);
+    if(!empty(r.unidadNegocioId)&&!empty(r.areaId)&&!unit?.areas.some(a=>a.id===r.areaId)){
+      issues.push({field:'areaId',label:this.fieldLabel(key,'areaId'),reason:'no pertenece a la unidad seleccionada'});
+    }
+    for(const field of spec.nums){
+      if(empty(r[field]))continue;
+      const value=toNum(r[field]);
+      if(value===null||!Number.isFinite(value))issues.push({field,label:this.fieldLabel(key,field),reason:'debe ser un número válido'});
+    }
+    const period=this.periods.find(p=>String(p.anio)===String(r.anio)&&p.tipo===r.tipoPer&&(p.trimestre||'')===(r.tipoPer==='Trimestral'?r.trimPer:''));
+    if(!period)issues.push({field:'periodo',label:this.fieldLabel(key,'periodo'),reason:`no existe en Supabase (${this.periodLabel(r)})`});
+    if(key==='okrs'&&!this.objectives.some(o=>o.nombre===r.alineacion)){
+      issues.push({field:'alineacion',label:this.fieldLabel(key,'alineacion'),reason:'no coincide con un objetivo estratégico activo'});
+    }
+    return issues;
+  },
+  draftInfo(key,r,customIssues=null) {
+    const issues=customIssues||this.validationIssues(key,r);
+    const name=String(r.indicador||r.kpi||r.nombre||r.objetivo||r.kr||r.area||'fila sin nombre').trim();
+    return {
+      key,
+      id:String(r.id||''),
+      areaId:r.areaId,
+      unidadNegocioId:r.unidadNegocioId,
+      periodKey:this.periodKey(r),
+      periodLabel:this.periodLabel(r),
+      name,
+      issues,
+      label:`${SHEET(key)?.corto||key}: ${name}`
+    };
+  },
+  describeDrafts(drafts) {
+    return drafts.map((draft,index)=>{
+      const id=draft.id?` [ID ${draft.id}]`:'';
+      const issues=(draft.issues||[]).map(issue=>`${issue.label}: ${issue.reason}`).join('; ')||'registro incompleto';
+      return `${index+1}) ${draft.label}${id}, ${draft.periodLabel}: ${issues}`;
+    }).join(' | ');
+  },
   serialize(key,r) {
     const spec=this.specFor(key);
     if(!spec)return null;
-    if(spec.required.some(k=>r[k]===null||r[k]===undefined||String(r[k]).trim()==='')) return null;
-    if(!r.areaId||!r.unidadNegocioId) return null;
-    const unit=S().unidadesNegocio.find(u=>u.id===r.unidadNegocioId);
-    if(!unit?.areas.some(a=>a.id===r.areaId)) return null;
+    if(this.validationIssues(key,r).length)return null;
     const p=this.periods.find(p=>String(p.anio)===String(r.anio)&&p.tipo===r.tipoPer&&(p.trimestre||'')===(r.tipoPer==='Trimestral'?r.trimPer:''));
-    if(!p) return null;
     const row={id:this.uuid(r),area_id:r.areaId,periodo_id:p.id};
     for(const [local,remote] of Object.entries(spec.map)) {
       let v=r[local];
@@ -171,9 +234,7 @@ const Cloud = {
       if(key==='cierre'&&local==='semaforo') v=['Verde','Amarillo','Rojo'].includes(v)?v:null;
       row[remote]=v;
     }
-    if(key==='okrs'){
-      const obj=this.objectives.find(o=>o.nombre===r.alineacion);if(!obj)return null;row.objetivo_estrategico_id=obj.id;
-    }
+    if(key==='okrs')row.objetivo_estrategico_id=this.objectives.find(o=>o.nombre===r.alineacion).id;
     return row;
   },
   plan() {
@@ -232,7 +293,7 @@ const Cloud = {
         }
         if(key==='qqc'&&!S().data.cierre.some(c=>c.id===r.cierreId))continue;
         const row=this.serialize(key,r);ids.add(String(r.id));
-        if(!row){drafts.push({key,areaId:r.areaId,unidadNegocioId:r.unidadNegocioId,label:`${SHEET(key)?.corto||key}: ${r.indicador||r.kpi||r.nombre||r.objetivo||r.area||'fila incompleta'}`});continue;}
+        if(!row){drafts.push(this.draftInfo(key,r));continue;}
         add(spec.table,row);
       }
       remove(spec.table,ids);
@@ -242,10 +303,10 @@ const Cloud = {
       for(const r of S().data[key]||[]){
         reflectionIds.add(String(r.id));
         const row=this.serialize(key,r);
-        if(!row){drafts.push({key,areaId:r.areaId,unidadNegocioId:r.unidadNegocioId,label:`${SHEET(key)?.corto||key}: ${r.area||'fila incompleta'}`});continue;}
+        if(!row){drafts.push(this.draftInfo(key,r));continue;}
         const context=`${row.area_id}|${row.periodo_id}`;
         const part=`${key}|${context}`;
-        if(seenParts.has(part)){drafts.push({key,areaId:r.areaId,unidadNegocioId:r.unidadNegocioId,label:`${SHEET(key)?.corto||key}: registro repetido para el periodo`});continue;}
+        if(seenParts.has(part)){drafts.push(this.draftInfo(key,r,[{field:'periodo',label:'Periodo',reason:'registro repetido para el mismo periodo'}]));continue;}
         seenParts.add(part);
         const oldById=this.baseline.reflexiones?.get(String(row.id));
         const oldByContext=[...(this.baseline.reflexiones?.values()||[])].find(x=>x.area_id===row.area_id&&x.periodo_id===row.periodo_id);
@@ -289,8 +350,6 @@ const Cloud = {
     return data;
   }
 };
-
-
 /* Persistencia exclusiva del avance confirmado por el boton. No usa localStorage. */
 Cloud.sectionProgress = [];
 Cloud.sectionProgressReady = false;
@@ -336,8 +395,13 @@ Cloud.saveSectionConfirmed = async function({key, areaId, unidadId, contexto}) {
   clearTimeout(this.timer);
   await this.flush();
   if (this.failed) throw new Error('Supabase rechaz\u00f3 el guardado.');
-  const borradoresSeccion=(this.drafts||[]).filter(d=>d.key===key&&d.areaId===areaId&&d.unidadNegocioId===unidadId);
-  if (borradoresSeccion.length) throw new Error('Hay borradores incompletos en esta secci\u00f3n. Corr\u00edgelos antes de confirmar.');
+  const periodoActual=Calc.camposPeriodoAnalisis(key);
+  const periodoKey=this.periodKey(periodoActual);
+  const borradoresSeccion=(this.drafts||[]).filter(d=>d.key===key&&d.areaId===areaId&&d.unidadNegocioId===unidadId&&d.periodKey===periodoKey);
+  if (borradoresSeccion.length) {
+    const detalle=this.describeDrafts(borradoresSeccion);
+    throw new Error(`Hay ${borradoresSeccion.length} borrador(es) incompleto(s) en ${this.periodLabel(periodoActual)}. ${detalle}`);
+  }
   if (this.pending || this.saving) throw new Error('A\u00fan hay cambios pendientes. Intenta nuevamente.');
   if (!this.ready || Auth.user?.id !== usuarioId) throw new Error('La sesi\u00f3n cambi\u00f3 durante el guardado.');
   if (Auth.isAdmin()) return {admin:true};
@@ -354,7 +418,6 @@ Cloud.saveSectionConfirmed = async function({key, areaId, unidadId, contexto}) {
   this.sectionProgress.push(row);
   return row;
 };
-
 // Sustituciones controladas de persistencia y autenticaci\u00F3n.
 Store.load=()=>false;
 Store.save=()=>Cloud.schedule();
@@ -367,7 +430,6 @@ Auth.log=(accion,detalle='')=>{
   Auth.db.log.unshift({t:new Date().toISOString(),u:Auth.user.nombre,accion,detalle});
   Cloud.client.rpc('registrar_evento',{p_accion:accion,p_detalle:detalle,p_contexto:{}}).then(({error})=>{if(error)console.warn('Bit\u00E1cora:',error.message);});
 };
-
 const loginOriginal=renderLogin;
 renderLogin=function(msg=''){
   loginOriginal(msg);
@@ -406,8 +468,17 @@ openAccount=function(){
   $('#modalRoot').innerHTML=modalShell('Cambiar contrase\u00F1a','Se actualizar\u00E1 en Supabase Auth.',fld('nueva','Nueva contrase\u00F1a','<input class="input" type="password" name="nueva" id="u_nueva" minlength="8" required autocomplete="new-password">',1)+fld('confirmar','Confirmar contrase\u00F1a','<input class="input" type="password" name="confirmar" id="u_confirmar" required autocomplete="new-password">',1));
   $('#uForm').onsubmit=async e=>{e.preventDefault();const f=e.target;if(f.nueva.value.length<8||f.nueva.value!==f.confirmar.value)return toast('M\u00EDnimo 8 caracteres y ambas contrase\u00F1as iguales.','error');try{await Cloud.checked(Cloud.client.auth.updateUser({password:f.nueva.value}));closeModal();toast('Contrase\u00F1a actualizada en Supabase','ok');}catch(err){toast(err.message,'error');}};
 };
-openUserForm=function(id){
-  if(Cloud.saving||Cloud.pending||Cloud.draftCount)return toast('Termina de guardar antes de administrar usuarios.','error');
+openUserForm=async function(id){
+  /* Antes de administrar usuarios: intenta guardar lo pendiente y, si algo
+     queda bloqueado, indica exactamente qué registro lo impide. */
+  if(Cloud.saving)return toast('Espera a que termine el guardado y vuelve a intentar.','error');
+  if(Cloud.pending){clearTimeout(Cloud.timer);await Cloud.flush();}
+  if(Cloud.failed||Cloud.pending)return toast('Supabase rechazó el último guardado. Revisa el error mostrado y vuelve a intentar.','error');
+  if(Cloud.draftCount){
+    const detalle=Cloud.describeDrafts(Cloud.drafts||[]);
+    console.warn('Borradores que bloquean la administración de usuarios:',Cloud.drafts);
+    return toast(`Tienes ${Cloud.draftCount} borrador(es) incompleto(s). Complétalos o elimínalos antes de administrar usuarios. ${detalle}`,'error');
+  }
   const u=Auth.db.users.find(u=>u.id===id);
   const selected=(unit,area)=>(u?.accesos||[]).some(a=>a.unidadId===unit&&a.areaId===area);
   const html=fld('nombre','Nombre completo',`<input class="input" name="nombre" id="u_nombre" value="${esc(u?.nombre||'')}" required>`,1)+fld('correo','Correo',`<input class="input" name="correo" type="email" id="u_correo" value="${esc(u?.correo||'')}" ${u?'readonly':''} required>`,1)+fld('puesto','Puesto',`<input class="input" name="puesto" id="u_puesto" value="${esc(u?.puesto||'')}">`)+(!u?fld('pass','Contrase\u00F1a inicial','<input class="input" name="pass" id="u_pass" type="password" minlength="8" required autocomplete="new-password">',1):'')+`<div class="field"><label>Rol</label><select class="input" name="rol"><option value="direccion">Direcci\u00F3n</option><option value="admin" ${u?.rol==='admin'?'selected':''}>Administrador</option></select></div><div class="field"><label><input type="checkbox" name="activo" ${!u||u.activo?'checked':''}> Activo</label></div><div class="field full">${S().unidadesNegocio.map(unit=>`<fieldset><legend>${esc(unit.nombre)}</legend>${unit.areas.map(a=>`<label style="display:block;padding:6px"><input type="checkbox" name="acceso" data-unidad="${esc(unit.id)}" value="${esc(a.id)}" ${selected(unit.id,a.id)?'checked':''}> ${esc(a.nombre)}</label>`).join('')}</fieldset>`).join('')}</div>`;
@@ -423,10 +494,8 @@ openUserForm=function(id){
   };
 };
 window.addEventListener('beforeunload',e=>{if(Cloud.pending||Cloud.saving||Cloud.draftCount){e.preventDefault();e.returnValue='';}});
-
 // Reflexión de Área y Reflexión Personal usan periodos independientes,
 // pero se consolidan de forma segura en la tabla remota de reflexiones.
-
 // Excel: conserva el contexto explícito, incluye las seis secciones operativas
 // y no borra bloques ausentes del archivo.
 exportExcel=function(vacia=false){

@@ -1,4 +1,3 @@
-
   'use strict';
 /* =======================================================================
    MÓDULO 1 · CONFIGURACIÓN  ← Edita aquí áreas, umbrales, listas y columnas
@@ -12,7 +11,6 @@ const CONFIG = {
   THEME_KEY: 'portafolio_estrategico_tema',
   USERS_KEY: 'portafolio_estrategico_usuarios_v1',
   SESSION_KEY: 'portafolio_estrategico_sesion',
-
   // Roles de la plataforma
   ROLES: {
     admin: { nombre: 'Administrador', desc: 'Planeación Estratégica: acceso total, dashboard y administración' },
@@ -35,7 +33,6 @@ const CONFIG = {
     { nombre: 'Dirección de Logística', usuario: 'logistica', rol: 'direccion', areas: ['Logística'] },
     { nombre: 'Dirección de Operaciones', usuario: 'operaciones', rol: 'direccion', areas: ['Almacén', 'Compra de Fruta'] }
   ],
-
   // Áreas / direcciones (lista inicial; editable en la pantalla Configuración)
   AREAS: ['Comercial', 'Compras', 'Almacén', 'Compra de Fruta', 'Logística', 'Finanzas', 'Gestión de Talento', 'Productoras'],
   // ======================================================================
@@ -55,13 +52,10 @@ UNIDADES_NEGOCIO: [
     areas: []
   }
 ],
-
   // Semáforo automático: % cumplimiento ≥ verde → Verde; ≥ amarillo → Amarillo; menor → Rojo
   UMBRALES: { verde: 95, amarillo: 85 },
-
   // Objetivos estratégicos de la empresa (para alinear OKRs)
   OBJETIVOS_ESTRATEGICOS: ['Crecimiento rentable', 'Excelencia operativa', 'Calidad y satisfacción del cliente', 'Desarrollo del talento', 'Transformación digital', 'Sostenibilidad'],
-
   // Listas desplegables
   LISTAS: {
     anios: ['2024', '2025', '2026', '2027', '2028', '2029', '2030'],
@@ -77,7 +71,6 @@ UNIDADES_NEGOCIO: [
   ESTATUS_COMPLETADO: 'Completada',
   ESTATUS_EXCLUIDOS_VENCIDA: ['Completada', 'Cancelada']
 };
-
 const AC = CONFIG.ANIO_CIERRE, AP = CONFIG.ANIO_PLAN;
    const SHEETS = [
   { key: 'cierre', hoja: 'Cierre', nombre: 'Cierre de resultados', corto: 'Cierre', icon: 'chart',
@@ -123,9 +116,9 @@ const AC = CONFIG.ANIO_CIERRE, AP = CONFIG.ANIO_PLAN;
       { k: 'area', l: '\u00C1rea', t: 'area' },
       { k: 'kpi', l: 'KPI', t: 'text', req: 1, full: 1, w: 30 },
       { k: 'unidad', l: 'Unidad', t: 'text', w: 10 },
-      { k: 'metaVerde', l: 'Meta Verde', t: 'number', w: 14 },
-      { k: 'metaAmarilla', l: 'Meta Amarilla', t: 'number', w: 14 },
-      { k: 'metaRoja', l: 'Meta Roja', t: 'number', w: 14 },
+      { k: 'metaVerde', l: 'Meta Verde', t: 'number', req: 1, w: 14 },
+      { k: 'metaAmarilla', l: 'Meta Amarilla', t: 'number', req: 1, w: 14 },
+      { k: 'metaRoja', l: 'Meta Roja', t: 'number', req: 1, w: 14 },
       { k: 'responsable', l: 'Responsable', t: 'text', req: 1, w: 18, list: 1 }
     ] },
   { key: 'reflexion', hoja: 'Reflexión', nombre: 'Reflexión del área', corto: 'Reflexión', icon: 'feather', form: 1,

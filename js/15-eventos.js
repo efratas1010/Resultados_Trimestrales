@@ -432,7 +432,7 @@ const Changes = {
   umbral: el => { const v = toNum(el.value), u = S().umbrales, k = el.dataset.k; if (v == null || v < 0) { toast('Ingresa un número válido.', 'error'); el.value = u[k]; return; }
     const nu = { ...u, [k]: v }; if (nu.amarillo >= nu.verde) { toast('El umbral amarillo debe ser menor que el verde.', 'error'); el.value = u[k]; return; } S().umbrales = nu; Store.save(); renderSidebar(); toast('Umbrales actualizados; semáforos recalculados', 'ok'); },
   areaRename: el => { const i = +el.dataset.i, old = S().areas[i], nv = el.value.trim(); if (!nv || (nv !== old && S().areas.includes(nv))) { toast('El nombre está vacío o ya existe.', 'error'); el.value = old; return; }
-    S().areas[i] = nv; Auth.db.users.forEach(u => u.areas = u.areas.map(x => x === old ? nv : x)); Auth.persist(); SHEETS.forEach(s => S().data[s.key].forEach(r => { if (r.area === old) r.area = nv; })); if (UI.area === old) UI.area = nv; if (UI.filters.area === old) UI.filters.area = nv; Store.save(); renderSidebar(); toast('Área actualizada', 'ok'); },
+    S().areas[i] = nv; Auth.db.users.forEach(u => u.areas = u.areas.map(x => x === old ? nv : x)); Auth.persist(); [...SHEETS, RP_SECCION_PERSONAL].forEach(s => (S().data[s.key] || []).forEach(r => { if (r.area === old) r.area = nv; })); if (UI.area === old) UI.area = nv; if (UI.filters.area === old) UI.filters.area = nv; Store.save(); renderSidebar(); toast('Área actualizada', 'ok'); },
   objetivos: el => { const l = [...new Set(el.value.split('\n').map(x => x.trim()).filter(Boolean))]; if (!l.length) { toast('Debe existir al menos un objetivo.', 'error'); return; } S().objetivos = l; Store.save(); toast('Objetivos actualizados', 'ok'); }
 };
 

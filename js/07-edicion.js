@@ -19,9 +19,16 @@ function rpSeccionConfirmada(key) {
     r.usuario_id === Auth.user?.id && r.area_id === UI.areaId &&
     r.contexto === contexto && r.seccion === key);
 }
-function rpPuedeAbrirSeccion(key) {
-  if (Auth.isAdmin()) return true;
-  const i = RP_FLUJO_SECCIONES.indexOf(key);
+  /* Excepción: el usuario demo en el área demo navega sin candados. */
+  function rpSinCandadoDemo() {
+    const correo = String(Auth.user?.correo || Auth.user?.usuario || '').trim().toLowerCase();
+    const area = String(areaEdicionActual()?.nombre || UI.area || '').trim().toLowerCase();
+    return correo === 'demo@chanitos.com' && area === 'planeación (demo)';
+  }
+  function rpPuedeAbrirSeccion(key) {
+    if (Auth.isAdmin()) return true;
+    if (rpSinCandadoDemo()) return true;
+    const i = RP_FLUJO_SECCIONES.indexOf(key);
   if (i < 0) return false;
   return RP_FLUJO_SECCIONES.slice(0, i).every(rpSeccionConfirmada);
 }

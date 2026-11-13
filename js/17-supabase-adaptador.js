@@ -468,17 +468,19 @@ openAccount=function(){
   $('#modalRoot').innerHTML=modalShell('Cambiar contrase\u00F1a','Se actualizar\u00E1 en Supabase Auth.',fld('nueva','Nueva contrase\u00F1a','<input class="input" type="password" name="nueva" id="u_nueva" minlength="8" required autocomplete="new-password">',1)+fld('confirmar','Confirmar contrase\u00F1a','<input class="input" type="password" name="confirmar" id="u_confirmar" required autocomplete="new-password">',1));
   $('#uForm').onsubmit=async e=>{e.preventDefault();const f=e.target;if(f.nueva.value.length<8||f.nueva.value!==f.confirmar.value)return toast('M\u00EDnimo 8 caracteres y ambas contrase\u00F1as iguales.','error');try{await Cloud.checked(Cloud.client.auth.updateUser({password:f.nueva.value}));closeModal();toast('Contrase\u00F1a actualizada en Supabase','ok');}catch(err){toast(err.message,'error');}};
 };
+/* Recarga solo usuarios y accesos, sin tocar datos ni borradores en memoria. */
+Cloud.reloadUsers=async function(){
+  const [perfiles,accesos,areas]=await Promise.all(['perfiles','accesos_usuario_area','areas'].map(t=>this.all(t)));
+  Auth.db.users=perfiles.map(p=>this.profile(p,accesos));
+  Auth.db.users.forEach(u=>u.areas=[...new Set(u.accesos.map(x=>areas.find(a=>a.id===x.areaId)?.nombre).filter(Boolean))]);
+  Auth.user=Auth.db.users.find(p=>p.id===Auth.user?.id)||Auth.user;
+  this.baseline.perfiles=new Map(perfiles.map(r=>[String(r.id),r]));
+  this.baseline.accesos_usuario_area=new Map(accesos.map(r=>[String(r.id),r]));
+};
 openUserForm=async function(id){
-  /* Antes de administrar usuarios: intenta guardar lo pendiente y, si algo
-     queda bloqueado, indica exactamente qué registro lo impide. */
-  if(Cloud.saving)return toast('Espera a que termine el guardado y vuelve a intentar.','error');
-  if(Cloud.pending){clearTimeout(Cloud.timer);await Cloud.flush();}
-  if(Cloud.failed||Cloud.pending)return toast('Supabase rechazó el último guardado. Revisa el error mostrado y vuelve a intentar.','error');
-  if(Cloud.draftCount){
-    const detalle=Cloud.describeDrafts(Cloud.drafts||[]);
-    console.warn('Borradores que bloquean la administración de usuarios:',Cloud.drafts);
-    return toast(`Tienes ${Cloud.draftCount} borrador(es) incompleto(s). Complétalos o elimínalos antes de administrar usuarios. ${detalle}`,'error');
-  }
+  /* El administrador puede administrar usuarios aunque existan cambios
+     pendientes o borradores; estos se conservan en memoria. */
+  if(!Auth.isAdmin())return toast('Solo el administrador puede administrar usuarios.','error');
   const u=Auth.db.users.find(u=>u.id===id);
   const selected=(unit,area)=>(u?.accesos||[]).some(a=>a.unidadId===unit&&a.areaId===area);
   const html=fld('nombre','Nombre completo',`<input class="input" name="nombre" id="u_nombre" value="${esc(u?.nombre||'')}" required>`,1)+fld('correo','Correo',`<input class="input" name="correo" type="email" id="u_correo" value="${esc(u?.correo||'')}" ${u?'readonly':''} required>`,1)+fld('puesto','Puesto',`<input class="input" name="puesto" id="u_puesto" value="${esc(u?.puesto||'')}">`)+(!u?fld('pass','Contrase\u00F1a inicial','<input class="input" name="pass" id="u_pass" type="password" minlength="8" required autocomplete="new-password">',1):'')+`<div class="field"><label>Rol</label><select class="input" name="rol"><option value="direccion">Direcci\u00F3n</option><option value="admin" ${u?.rol==='admin'?'selected':''}>Administrador</option></select></div><div class="field"><label><input type="checkbox" name="activo" ${!u||u.activo?'checked':''}> Activo</label></div><div class="field full">${S().unidadesNegocio.map(unit=>`<fieldset><legend>${esc(unit.nombre)}</legend>${unit.areas.map(a=>`<label style="display:block;padding:6px"><input type="checkbox" name="acceso" data-unidad="${esc(unit.id)}" value="${esc(a.id)}" ${selected(unit.id,a.id)?'checked':''}> ${esc(a.nombre)}</label>`).join('')}</fieldset>`).join('')}</div>`;
@@ -489,7 +491,7 @@ openUserForm=async function(id){
       const accesos=[...f.querySelectorAll('[name="acceso"]:checked')].map(x=>({unidadId:x.dataset.unidad,areaId:x.value}));
       if(f.rol.value==='direccion'&&!accesos.length)throw new Error('Selecciona al menos un \u00E1rea.');
       await Cloud.adminUser({op:u?'update':'create',id:u?.id,email:f.correo.value.trim(),password:u?undefined:f.pass.value,nombre:f.nombre.value.trim(),puesto:f.puesto.value.trim(),rol:f.rol.value,activo:f.activo.checked,accesos:f.rol.value==='admin'?[]:accesos});
-      await Cloud.load();closeModal();renderAll();toast('Usuario guardado en Supabase','ok');
+      await Cloud.reloadUsers();closeModal();renderAll();toast('Usuario guardado en Supabase','ok');
     }catch(err){toast(err.message,'error');}finally{if(button)button.disabled=false;}
   };
 };

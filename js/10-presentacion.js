@@ -13,6 +13,529 @@
    1. DIAPOSITIVA EJECUTIVA DE CIERRE
    ======================================================================= */
 
+function tipografiaPresentacionHTML() {
+  return `
+    <style id="tipografia-presentacion">
+      /*
+         Sistema tipográfico único del modo Presentación.
+         Los tamaños son fijos y no dependen de caracteres, filas o resolución.
+      */
+      #slides {
+        --pres-font: var(--font);
+        --pres-cover-title: 50px;
+        --pres-title: 40px;
+        --pres-subtitle: 22px;
+        --pres-body: 20px;
+        --pres-reflection-body: 28px;
+        --pres-table-body: 18px;
+        --pres-table-head: 13px;
+        --pres-meta: 13px;
+        --pres-meta-value: 16px;
+      }
+
+      #slides,
+      #slides button,
+      #slides input,
+      #slides select,
+      #slides textarea,
+      #slides table {
+        font-family: var(--pres-font) !important;
+      }
+
+      #slides .slide {
+        font-family: var(--pres-font) !important;
+        font-size: var(--pres-body) !important;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        zoom: 1 !important;
+      }
+
+      #slides .slide * {
+        font-family: var(--pres-font) !important;
+      }
+
+      #slides .slide-cover h1 {
+        font-size: var(--pres-cover-title) !important;
+        line-height: 1.08 !important;
+      }
+
+      #slides .slide-cover {
+        gap: 22px !important;
+      }
+
+      #slides .slide-cover .eyebrow {
+        font-size: 14px !important;
+      }
+
+      #slides .ax-name,
+      #slides .cx-head h2,
+      #slides .cp-top h2,
+      #slides .sec-title h3,
+      #slides .rx-title,
+      #slides .kpis-slide .sec-title h3,
+      #slides .qqc-slide .sec-title h3 {
+        font-size: var(--pres-title) !important;
+        line-height: 1.08 !important;
+      }
+
+      #slides .slide p,
+      #slides .slide .blk,
+      #slides .slide .okr-card,
+      #slides .slide .kr,
+      #slides .slide .cp-row,
+      #slides .slide .cx-card p,
+      #slides .ax-card span,
+      #slides .cp-name b {
+        font-size: var(--pres-body) !important;
+        line-height: 1.4 !important;
+      }
+
+      #slides .slide-cover p,
+      #slides .slide .rx-subtitle {
+        font-size: var(--pres-subtitle) !important;
+        line-height: 1.3 !important;
+      }
+
+      #slides .slide .rx-copy {
+        font-size: var(--pres-reflection-body) !important;
+        line-height: 1.42 !important;
+      }
+
+      #slides .cx-tbl table,
+      #slides .kpis-slide table.tbl.compact,
+      #slides .kpis-slide table.tbl.compact td,
+      #slides .qqc-slide table.tbl.compact,
+      #slides .qqc-slide table.tbl.compact td,
+      #slides .slide table.tbl td {
+        font-family: var(--pres-font) !important;
+        font-size: var(--pres-table-body) !important;
+        line-height: 1.25 !important;
+      }
+
+      #slides .cx-tbl th,
+      #slides .kpis-slide table.tbl.compact th.static,
+      #slides .qqc-slide table.tbl.compact th.static,
+      #slides .slide table.tbl th {
+        font-family: var(--pres-font) !important;
+        font-size: var(--pres-table-head) !important;
+        line-height: 1.2 !important;
+      }
+
+      #slides .slide table.tbl th,
+      #slides .slide table.tbl td {
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        hyphens: manual !important;
+      }
+
+      #slides .pres-comments-cell {
+        min-width: 240px;
+        white-space: pre-wrap !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        text-align: left !important;
+      }
+
+      #slides .slide table.tbl th {
+        position: sticky !important;
+        top: 0;
+        z-index: 4;
+        background: var(--surface-2);
+      }
+
+      #slides .cx-tbl th {
+        position: sticky !important;
+        top: 0;
+        z-index: 4;
+        background: var(--surface-2);
+      }
+
+      #slides .slide-cover .eyebrow,
+      #slides .ax-eyebrow,
+      #slides .cx-eyebrow,
+      #slides .cx-meta,
+      #slides .sec-title .small,
+      #slides .kpis-slide .sec-title .small,
+      #slides .qqc-slide .sec-title .small,
+      #slides .qqc-slide .qqc-presentacion > section > .small,
+      #slides .rx-eyebrow,
+      #slides .slide .rx-prompt,
+      #slides .rx-context-label,
+      #slides .rx-foot,
+      #slides .cx-foot,
+      #slides .slide .small,
+      #slides .kbd {
+        font-size: var(--pres-meta) !important;
+        line-height: 1.3 !important;
+      }
+
+      #slides .rx-context-value,
+      #slides .cx-cell b,
+      #slides .pill,
+      #slides .tag {
+        font-size: var(--pres-meta-value) !important;
+        line-height: 1.25 !important;
+      }
+
+      #slides .ax-card small,
+      #slides .cp-name small,
+      #slides .cx-tbl td small {
+        font-size: var(--pres-meta) !important;
+        line-height: 1.3 !important;
+      }
+
+      #slides .cx-band .cx-kpi b,
+      #slides .cp-sum .cx-kpi b,
+      #slides .ax-card b {
+        font-size: 36px !important;
+        line-height: 1.1 !important;
+      }
+
+      /* Portada de área: cifras y etiquetas proporcionadas al espacio visual. */
+      #slides .ax-card {
+        padding: 24px 18px !important;
+      }
+
+      #slides .ax-card span {
+        font-size: 20px !important;
+        line-height: 1.25 !important;
+      }
+
+      #slides .ax-card small {
+        font-size: 14px !important;
+      }
+
+      /* Comparativo: nombres, porcentajes y resumen con presencia ejecutiva. */
+      #slides .cp-name b {
+        font-size: 20px !important;
+      }
+
+      #slides .cp-name small {
+        font-size: 14px !important;
+      }
+
+      #slides .cp-pct {
+        font-size: 24px !important;
+      }
+
+      #slides .cp-sum .cx-cell b {
+        font-size: 17px !important;
+      }
+
+      /* Cierre: indicadores y cifras aprovechan las filas amplias. */
+      #slides .cx.cx-unificada .cx-head h2 {
+        font-size: 40px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-band .cx-kpi b {
+        font-size: 38px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-band .cx-kpi span,
+      #slides .cx.cx-unificada .cx-cell span {
+        font-size: 13px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-cell b {
+        font-size: 16px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td {
+        padding: 12px 10px !important;
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td:first-child b {
+        font-size: 19px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td small {
+        font-size: 14px !important;
+        line-height: 1.3 !important;
+        margin-top: 4px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl td em {
+        font-size: 15px !important;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl .pill {
+        font-size: 15px !important;
+        padding: 4px 10px !important;
+      }
+
+      /* KPIs: nombres, metas y responsables crecen sin inflar las filas. */
+      #slides .kpis-slide table.tbl.compact th.static {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+      }
+
+      #slides .kpis-slide table.tbl.compact td {
+        padding: 13px 12px !important;
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+      }
+
+      #slides .kpis-slide table.tbl.compact td:first-child b,
+      #slides .kpis-slide table.tbl.compact td:nth-child(3) b,
+      #slides .kpis-slide table.tbl.compact td:nth-child(4) b,
+      #slides .kpis-slide table.tbl.compact td:nth-child(5) b {
+        font-size: 20px !important;
+      }
+
+      #slides .kpis-slide table.tbl.compact td:nth-child(2) {
+        font-size: 17px !important;
+      }
+
+      #slides .kpis-slide table.tbl.compact td:last-child {
+        font-size: 18px !important;
+      }
+
+      /* Acciones y tablas genéricas: lectura cómoda; el exceso usa scroll. */
+      #slides .qqc-slide table.tbl.compact td {
+        font-size: 18px !important;
+        line-height: 1.35 !important;
+      }
+
+      #slides .qqc-slide table.tbl.compact .pill,
+      #slides .qqc-slide table.tbl.compact .tag {
+        font-size: 15px !important;
+      }
+
+      /* OKRs y contenido narrativo. */
+      #slides .okr-card,
+      #slides .kr,
+      #slides .blk {
+        font-size: 20px !important;
+        line-height: 1.45 !important;
+      }
+
+      #slides .okr-card h4,
+      #slides .blk h4 {
+        font-size: 22px !important;
+        line-height: 1.25 !important;
+      }
+
+      #slides .slide > .sec:not(.kpis-slide):not(.qqc-slide) {
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: auto !important;
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
+      }
+
+      #slides .slide > .sec:not(.kpis-slide):not(.qqc-slide) > .sec-title {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding-bottom: 12px;
+        background: var(--bg);
+      }
+
+      #slides .cp {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #slides .cp-top,
+      #slides .cp > .cx-foot {
+        flex: 0 0 auto;
+      }
+
+      #slides #cpBody {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: auto;
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
+        padding-right: 4px;
+      }
+
+      /* Con tipografía fija, las tablas extensas se consultan con scroll. */
+      #slides .cx-tbl,
+      #slides .kpis-slide > .tbl-wrap,
+      #slides .qqc-slide .tbl-wrap,
+      #slides .slide > .sec > .tbl-wrap {
+        overflow: auto !important;
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
+      }
+
+      #slides .cx.cx-unificada,
+      #slides .kpis-slide {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #slides .cx.cx-unificada .cx-tbl,
+      #slides .kpis-slide > .tbl-wrap {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+      }
+
+      #slides .cx-tbl table,
+      #slides .kpis-slide table.tbl.compact,
+      #slides .qqc-slide table.tbl.compact {
+        height: auto !important;
+      }
+
+      #slides .cx-tbl table {
+        min-width: 1450px;
+      }
+
+      #slides .kpis-slide table.tbl.compact {
+        min-width: 1350px !important;
+      }
+
+      #slides .qqc-slide .qqc-presentacion {
+        flex: 1 1 0 !important;
+        display: block !important;
+        min-height: 0 !important;
+        overflow: auto !important;
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
+      }
+
+      #slides .qqc-slide .qqc-presentacion > section {
+        display: block !important;
+        overflow: visible !important;
+        min-height: auto !important;
+        margin: 0 0 18px !important;
+      }
+
+      #slides .qqc-slide {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #slides .qqc-slide .qqc-presentacion .tbl-wrap {
+        display: block !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        overflow: visible !important;
+      }
+
+      #slides .qqc-slide .qqc-presentacion table.tbl.compact {
+        width: max(100%, 1800px) !important;
+        min-width: 1800px !important;
+        table-layout: fixed !important;
+      }
+
+      #slides .qqc-slide table.tbl.compact col:nth-child(1) { width: 6% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(2) { width: 13% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(3) { width: 11% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(4) { width: 24% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(5) { width: 11% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(6) { width: 19% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(7) { width: 8% !important; }
+      #slides .qqc-slide table.tbl.compact col:nth-child(8) { width: 8% !important; }
+
+      #slides .qqc-slide table.tbl.compact th,
+      #slides .qqc-slide table.tbl.compact td {
+        padding: 10px 12px !important;
+        vertical-align: top !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+      }
+
+      #slides .qqc-slide table.tbl.compact th:nth-child(5),
+      #slides .qqc-slide table.tbl.compact td:nth-child(5),
+      #slides .qqc-slide table.tbl.compact th:nth-child(7),
+      #slides .qqc-slide table.tbl.compact td:nth-child(7) {
+        overflow-wrap: normal !important;
+      }
+
+      #slides .qqc-slide table.tbl.compact .pill,
+      #slides .qqc-slide table.tbl.compact .tag {
+        font-family: var(--pres-font) !important;
+        white-space: nowrap !important;
+      }
+
+      #slides .cx-tbl thead,
+      #slides .cx-tbl tbody tr,
+      #slides .kpis-slide table.tbl.compact thead,
+      #slides .kpis-slide table.tbl.compact tbody tr,
+      #slides .qqc-slide table.tbl.compact thead,
+      #slides .qqc-slide table.tbl.compact tbody tr {
+        height: auto !important;
+      }
+    </style>
+  `;
+}
+
+function prepararTablasPresentacion() {
+  const contenedores = [
+    ...document.querySelectorAll(
+      '#slides .slide .tbl-wrap, #slides .slide .cx-tbl, #slides .slide .qqc-presentacion'
+    )
+  ];
+
+  contenedores.forEach((contenedor, indice) => {
+    const tabla = contenedor.matches('table')
+      ? contenedor
+      : contenedor.querySelector('table');
+
+    if (!tabla) return;
+
+    contenedor.tabIndex = 0;
+    contenedor.setAttribute('role', 'region');
+    contenedor.setAttribute(
+      'aria-label',
+      `Tabla de presentación ${indice + 1}. Usa las flechas o el desplazamiento para consultar todo el contenido.`
+    );
+
+    tabla.querySelectorAll('thead th').forEach(celda => {
+      celda.setAttribute('scope', 'col');
+    });
+  });
+}
+
+function campoComentariosPresentacion(claveSeccion, registro = null) {
+  const columnas = SHEET(claveSeccion)?.cols || [];
+  const normalizar = valor => String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
+  const campoEdicion = columnas.find(columna => {
+    const etiqueta = normalizar(columna.l);
+    return etiqueta === 'comentario' || etiqueta === 'comentarios';
+  });
+
+  if (campoEdicion) return campoEdicion;
+
+  const claveReal = Object.keys(registro || {}).find(clave => {
+    const nombre = normalizar(clave);
+    return nombre === 'comentario' || nombre === 'comentarios';
+  });
+
+  return claveReal ? { k: claveReal, l: 'Comentarios' } : null;
+}
+
+function comentarioPresentacion(registro, claveSeccion) {
+  const campo = campoComentariosPresentacion(claveSeccion, registro);
+  return campo ? String(registro?.[campo.k] ?? '') : '';
+}
+
 function cierreSlideHTML(area) {
   const rows = F.get('cierre').filter(r => r.area === area);
 
@@ -341,12 +864,13 @@ function cierreSlideHTML(area) {
     <div class="cx-tbl">
       <table>
         <colgroup>
-          <col style="width:42%">
+          <col style="width:28%">
+          <col style="width:8%">
+          <col style="width:8%">
+          <col style="width:9%">
+          <col style="width:9%">
           <col style="width:10%">
-          <col style="width:10%">
-          <col style="width:12%">
-          <col style="width:12%">
-          <col style="width:14%">
+          <col style="width:28%">
         </colgroup>
 
         <thead>
@@ -357,6 +881,7 @@ function cierreSlideHTML(area) {
             <th class="num">Var %</th>
             <th class="num">Cumpl.</th>
             <th class="ctr">Sem\u00E1foro</th>
+            <th>Comentarios</th>
           </tr>
         </thead>
 
@@ -381,11 +906,6 @@ function cierreSlideHTML(area) {
                         : ''
                     }
 
-                    ${
-                      registro.comentarios
-                        ? `<small>${esc(registro.comentarios)}</small>`
-                        : ''
-                    }
                   </td>
 
                   <td class="num">
@@ -406,6 +926,12 @@ function cierreSlideHTML(area) {
 
                   <td class="ctr">
                     ${semPill(item.semaforo)}
+                  </td>
+
+                  <td class="pres-comments-cell">
+                    ${comentarioPresentacion(registro, 'cierre').trim()
+                      ? esc(comentarioPresentacion(registro, 'cierre'))
+                      : '<span class="muted">—</span>'}
                   </td>
                 </tr>
               `;
@@ -884,6 +1410,8 @@ function ajustarCierreCompleto() {
        crecen o disminuyen con el numero de indicadores y con la pantalla.
     */
     stage.style.boxSizing = 'border-box';
+    stage.style.flex = '1 1 0';
+    stage.style.minHeight = '0';
     stage.style.display = 'flex';
     stage.style.alignItems = 'stretch';
     stage.style.justifyContent = 'center';
@@ -943,38 +1471,38 @@ function ajustarCierreCompleto() {
       const bandaY = limitar(fuente * 0.64 * factorCantidad, 5, 14);
 
       contenido.style.setProperty('--cx-gap', `${gap}px`);
-      contenido.style.setProperty('--cx-fuente-tabla', `${fuente}px`);
+      contenido.style.setProperty('--cx-fuente-tabla', '16px');
       contenido.style.setProperty(
         '--cx-fuente-comentario',
-        `${limitar(fuente * 0.76, 7, 15)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--cx-fuente-meta',
-        `${limitar(fuente * 0.72, 9, 15)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--cx-fuente-label',
-        `${limitar(fuente * 0.64, 8, 14)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--cx-fuente-conteo',
-        `${limitar(fuente * 0.84, 9, 17)}px`
+        '14px'
       );
       contenido.style.setProperty(
         '--cx-fuente-encabezado-tabla',
-        `${limitar(fuente * 0.66, 8, 14)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--cx-fuente-unidad',
-        `${limitar(fuente * 0.74, 8, 15)}px`
+        '14px'
       );
       contenido.style.setProperty(
         '--cx-fuente-pill',
-        `${limitar(fuente * 0.7, 8, 14)}px`
+        '14px'
       );
       contenido.style.setProperty(
         '--cx-fuente-pie',
-        `${limitar(fuente * 0.65, 8, 13)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--cx-tamano-punto',
@@ -1016,11 +1544,11 @@ function ajustarCierreCompleto() {
       contenido.style.setProperty('--cx-px', `${px}px`);
       contenido.style.setProperty(
         '--cx-fuente-titulo',
-        `${limitar(fuente * 1.75, 20, 38)}px`
+        '36px'
       );
       contenido.style.setProperty(
         '--cx-fuente-kpi',
-        `${limitar(fuente * 1.82, 20, 40)}px`
+        '30px'
       );
       contenido.style.setProperty('--cx-padding-banda-y', `${bandaY}px`);
     };
@@ -1130,18 +1658,21 @@ function kpisSlideHTML(area) {
     seccion => seccion[0] === 'kpis'
   );
 
+  const campoComentariosKpi = campoComentariosPresentacion('kpis', rows[0]);
+
   const tabla = rows.length
     ? `
       <div class="tbl-wrap">
         <table class="tbl compact" style="table-layout:fixed">
           <thead>
             <tr>
-              <th class="static" style="width:30%">KPI</th>
-              <th class="static" style="width:10%">Unidad</th>
-              <th class="static num" style="width:14%;background:#dcfce7;color:#166534;border-color:#86efac">Meta Verde</th>
-              <th class="static num" style="width:14%;background:#fef9c3;color:#854d0e;border-color:#fde047">Meta Amarilla</th>
-              <th class="static num" style="width:14%;background:#fee2e2;color:#991b1b;border-color:#fca5a5">Meta Roja</th>
-              <th class="static" style="width:18%">Responsable</th>
+              <th class="static" style="width:24%">KPI</th>
+              <th class="static" style="width:8%">Unidad</th>
+              <th class="static num" style="width:10%;background:#dcfce7;color:#166534;border-color:#86efac">Meta Verde</th>
+              <th class="static num" style="width:10%;background:#fef9c3;color:#854d0e;border-color:#fde047">Meta Amarilla</th>
+              <th class="static num" style="width:10%;background:#fee2e2;color:#991b1b;border-color:#fca5a5">Meta Roja</th>
+              <th class="static" style="width:15%">Responsable</th>
+              <th class="static" style="width:23%">Comentarios</th>
             </tr>
           </thead>
           <tbody>
@@ -1154,6 +1685,11 @@ function kpisSlideHTML(area) {
                   <td class="num" style="background:#fefce8;color:#854d0e"><b>${fmtNum(registro.metaAmarilla)}</b></td>
                   <td class="num" style="background:#fef2f2;color:#991b1b"><b>${fmtNum(registro.metaRoja)}</b></td>
                   <td>${registro.responsable ? esc(registro.responsable) : '<span class="muted">—</span>'}</td>
+                  <td class="pres-comments-cell">
+                    ${campoComentariosKpi && String(registro?.[campoComentariosKpi.k] ?? '').trim()
+                      ? esc(String(registro[campoComentariosKpi.k]))
+                      : '<span class="muted">—</span>'}
+                  </td>
                 </tr>
               `)
               .join('')}
@@ -1227,8 +1763,8 @@ function kpisSlideHTML(area) {
       }
 
       #slides .kpis-slide table.tbl.compact {
-        width: 100% !important;
-        min-width: 0 !important;
+        width: max(100%, 1350px) !important;
+        min-width: 1350px !important;
         height: 100%;
         margin: 0;
         table-layout: fixed !important;
@@ -1269,9 +1805,8 @@ function kpisSlideHTML(area) {
       }
 
       /*
-         Las seis columnas conservan el orden y las proporciones de origen:
-         KPI, Unidad, Meta Verde, Meta Amarilla, Meta Roja y Responsable.
-         Solo se refuerza el semaforo en las tres columnas de metas.
+         Se conservan las columnas de origen y se agrega Comentarios usando el
+         campo real declarado por Edición. Las metas mantienen su semáforo.
       */
       #slides .kpis-slide table.tbl.compact th:nth-child(3) {
         background: linear-gradient(135deg, #bbf7d0 0%, #dcfce7 52%, #86efac 100%) !important;
@@ -1390,6 +1925,8 @@ function ajustarKpisSlide() {
     const cantidad = Math.max(1, filas);
 
     stage.style.boxSizing = 'border-box';
+    stage.style.flex = '1 1 0';
+    stage.style.minHeight = '0';
     stage.style.display = 'flex';
     stage.style.alignItems = 'stretch';
     stage.style.justifyContent = 'center';
@@ -1457,18 +1994,18 @@ function ajustarKpisSlide() {
         58
       );
 
-      contenido.style.setProperty('--kps-font', `${fuente}px`);
+      contenido.style.setProperty('--kps-font', '16px');
       contenido.style.setProperty(
         '--kps-header-font',
-        `${fuenteCabecera}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--kps-title-font',
-        `${limitar(fuente * 1.62, 23, 42)}px`
+        '36px'
       );
       contenido.style.setProperty(
         '--kps-area-font',
-        `${limitar(fuente * .66, 9, 15)}px`
+        '12px'
       );
       contenido.style.setProperty('--kps-pad-y', `${padY}px`);
       contenido.style.setProperty('--kps-pad-x', `${padX}px`);
@@ -1597,36 +2134,35 @@ function planAccionesCriticasSlideHTML(area) {
 
       #slides .qqc-slide .sec-title h3 {
         margin: 0;
-        font-size: clamp(22px, 2.25vw, 36px);
+        font-size: 36px;
         line-height: 1.05;
         letter-spacing: -.025em;
       }
 
       #slides .qqc-slide .sec-title .small {
-        font-size: clamp(10px, .92vw, 14px);
+        font-size: 12px;
         line-height: 1.2;
       }
 
       #slides .qqc-slide .qqc-presentacion {
         flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
+        display: block;
         gap: var(--qqc-gap);
         width: 100%;
         min-width: 0;
         min-height: 0;
-        overflow: hidden;
+        overflow: auto;
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
       }
 
       #slides .qqc-slide .qqc-presentacion > section {
-        flex: 1 1 0;
-        display: flex;
-        flex-direction: column;
+        display: block;
         width: 100%;
         min-width: 0;
-        min-height: 0;
-        margin: 0 !important;
-        overflow: hidden;
+        min-height: auto;
+        margin: 0 0 18px !important;
+        overflow: visible;
       }
 
       #slides .qqc-slide .qqc-presentacion > section > .small {
@@ -1637,18 +2173,17 @@ function planAccionesCriticasSlideHTML(area) {
       }
 
       #slides .qqc-slide .qqc-presentacion .tbl-wrap {
-        flex: 1 1 auto;
-        display: flex;
+        display: block;
         width: 100%;
-        min-width: 0;
-        min-height: 0;
-        overflow: hidden;
+        min-width: 100%;
+        min-height: auto;
+        overflow: visible;
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact {
-        width: 100% !important;
-        min-width: 0 !important;
-        height: 100%;
+        width: max(100%, 1800px) !important;
+        min-width: 1800px !important;
+        height: auto;
         margin: 0;
         table-layout: fixed;
         border-collapse: collapse;
@@ -1656,28 +2191,34 @@ function planAccionesCriticasSlideHTML(area) {
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact thead {
-        height: calc(var(--qqc-header-font) * 2.65);
+        height: auto;
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact tbody tr {
-        height: calc(100% / var(--qqc-row-count, 1));
+        height: auto;
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact th.static {
-        padding: calc(var(--qqc-pad-y) * .78) var(--qqc-pad-x) !important;
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        padding: 10px 12px !important;
         font-size: var(--qqc-header-font) !important;
-        line-height: 1.08;
+        line-height: 1.2;
         white-space: normal;
-        overflow-wrap: anywhere;
+        word-break: normal;
+        overflow-wrap: break-word;
+        background: var(--surface-2);
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact td {
-        padding: var(--qqc-pad-y) var(--qqc-pad-x) !important;
+        padding: 10px 12px !important;
         font-size: var(--qqc-font);
-        line-height: 1.16;
-        vertical-align: middle;
+        line-height: 1.25;
+        vertical-align: top;
         white-space: normal;
-        overflow-wrap: anywhere;
+        word-break: normal;
+        overflow-wrap: break-word;
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact td .muted,
@@ -1692,7 +2233,7 @@ function planAccionesCriticasSlideHTML(area) {
         padding: calc(var(--qqc-pad-y) * .42) calc(var(--qqc-pad-x) * .82);
         font-size: var(--qqc-pill-font);
         line-height: 1.05;
-        white-space: normal;
+        white-space: nowrap;
       }
 
       #slides .qqc-slide .qqc-presentacion table.tbl.compact .pill i {
@@ -1725,6 +2266,8 @@ function ajustarPlanAccionesCriticas() {
     if (!stage || !slide || !contenido) return;
 
     stage.style.boxSizing = 'border-box';
+    stage.style.flex = '1 1 0';
+    stage.style.minHeight = '0';
     stage.style.display = 'flex';
     stage.style.alignItems = 'stretch';
     stage.style.justifyContent = 'center';
@@ -1801,18 +2344,18 @@ function ajustarPlanAccionesCriticas() {
       const padX = limitar(fuente * 0.56, 4.5, 11);
       const gap = limitar(fuente * 0.62 * factorFilas, 3.5, 12);
 
-      contenido.style.setProperty('--qqc-font', `${fuente}px`);
+      contenido.style.setProperty('--qqc-font', '16px');
       contenido.style.setProperty(
         '--qqc-header-font',
-        `${limitar(fuente * 0.72, 7.2, 12.5)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--qqc-context-font',
-        `${limitar(fuente * 0.86, 8.5, 15)}px`
+        '12px'
       );
       contenido.style.setProperty(
         '--qqc-pill-font',
-        `${limitar(fuente * 0.74, 7.4, 12.5)}px`
+        '14px'
       );
       contenido.style.setProperty('--qqc-pad-y', `${padY}px`);
       contenido.style.setProperty('--qqc-pad-x', `${padX}px`);
@@ -1882,7 +2425,7 @@ function ajustarPlanAccionesCriticas() {
    ======================================================================= */
 
 function rpAnteportadaHTML(area, titulo) {
- return `<div class="slide-cover" style="width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:clamp(20px,4vw,56px)"><span class="eyebrow">${esc(area)}</span><h1 style="font-size:clamp(32px,5vw,72px);line-height:1.08;overflow-wrap:anywhere">${esc(titulo)}</h1><div style="width:120px;height:6px;background:var(--primary);border-radius:999px;margin-top:24px"></div></div>`;
+ return `<div class="slide-cover" style="width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:clamp(20px,4vw,56px)"><span class="eyebrow">${esc(area)}</span><h1 style="font-size:44px;line-height:1.08;overflow-wrap:anywhere">${esc(titulo)}</h1><div style="width:120px;height:6px;background:var(--primary);border-radius:999px;margin-top:24px"></div></div>`;
 }
 function camposReflexionPresentacion() {
   const hoja = SHEET('reflexion');
@@ -1901,7 +2444,7 @@ function camposReflexionPresentacion() {
 }
 
 function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F3n de \u00C1rea') {
-  const claveDatos = etiqueta === 'Reflexión Personal' ? 'reflexionPersonal' : 'reflexion';
+  const claveDatos = etiqueta === 'Reflexi\u00F3n Personal' ? 'reflexionPersonal' : 'reflexion';
   const esReflexionPersonal = claveDatos === 'reflexionPersonal';
   const registro = F.get(claveDatos).find(fila => fila.area === area);
   const valor = String(registro?.[campo.k] ?? '');
@@ -1919,10 +2462,10 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
         --rx-pad: 28px;
         --rx-copy-size: 28px;
         --rx-copy-leading: 1.42;
-        --rx-title-size: 38px;
-        --rx-subtitle-size: 17px;
-        --rx-prompt-size: 15px;
-        --rx-meta-label-size: 10px;
+        --rx-title-size: 36px;
+        --rx-subtitle-size: 20px;
+        --rx-prompt-size: 12px;
+        --rx-meta-label-size: 12px;
         --rx-meta-value-size: 14px;
         --rx-card-pad-y: 30px;
         --rx-card-pad-x: 38px;
@@ -2106,6 +2649,43 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
         transform-origin: top left;
       }
 
+      /*
+         Reflexión de Área conserva una tipografía fija. Si el contenido supera
+         el alto útil de la tarjeta, se consulta mediante desplazamiento vertical
+         dentro de la misma diapositiva, sin cortar texto ni crear páginas extra.
+      */
+      #slides .rx .rx-copy-wrap {
+        align-items: flex-start;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: var(--rx-accent) var(--surface-2);
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #slides .rx .rx-copy-wrap::-webkit-scrollbar {
+        width: 12px;
+      }
+
+      #slides .rx .rx-copy-wrap::-webkit-scrollbar-track {
+        border-radius: 999px;
+        background: var(--surface-2);
+      }
+
+      #slides .rx .rx-copy-wrap::-webkit-scrollbar-thumb {
+        min-height: 42px;
+        border: 3px solid var(--surface-2);
+        border-radius: 999px;
+        background: var(--rx-accent);
+      }
+
+      #slides .rx .rx-copy {
+        flex: 0 0 auto;
+        transform: none !important;
+      }
+
       #slides .rx-copy.rx-empty {
         color: var(--muted);
         font-style: italic;
@@ -2133,7 +2713,11 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
       }
     </style>
 
-    <div class="rx" data-reflexion-campo="${esc(campo.k)}">
+    <div
+      class="rx"
+      data-reflexion-campo="${esc(campo.k)}"
+      data-reflexion-tipo="${esReflexionPersonal ? 'personal' : 'area'}"
+    >
       <header class="rx-head">
         <div class="rx-heading">
           <span class="rx-eyebrow">${esc(etiqueta)}</span>
@@ -2181,7 +2765,7 @@ function reflexionSlideHTML(area, campo, indice, total, etiqueta = 'Reflexi\u00F
   `;
 }
 
-function ajustarReflexionCompleta() {
+function ajustarReflexionDesplazable() {
   const stage = document.querySelector('#slides .slide-stage');
   const slide = document.querySelector('#slides .slide');
   const contenido = slide?.querySelector('.rx');
@@ -2189,10 +2773,6 @@ function ajustarReflexionCompleta() {
   const texto = contenido?.querySelector('.rx-copy');
 
   if (!stage || !slide || !contenido || !envoltura || !texto) return;
-
-  const limitar = (valor, minimo, maximo) => {
-    return Math.min(maximo, Math.max(minimo, valor));
-  };
 
   const aplicarAjuste = () => {
     if (!document.body.contains(contenido)) return;
@@ -2229,85 +2809,23 @@ function ajustarReflexionCompleta() {
     contenido.style.height = '100%';
     contenido.style.maxHeight = 'none';
 
-    texto.style.transform = 'none';
+    /* Valores fijos e independientes de la cantidad de caracteres. */
+    contenido.style.setProperty('--rx-copy-size', '28px');
+    contenido.style.setProperty('--rx-copy-leading', '1.42');
+    contenido.style.setProperty('--rx-gap', '18px');
+    contenido.style.setProperty('--rx-title-size', '36px');
+    contenido.style.setProperty('--rx-subtitle-size', '20px');
+    contenido.style.setProperty('--rx-prompt-size', '12px');
+    contenido.style.setProperty('--rx-meta-label-size', '12px');
+    contenido.style.setProperty('--rx-meta-value-size', '14px');
+    contenido.style.setProperty('--rx-card-pad-y', '30px');
+    contenido.style.setProperty('--rx-card-pad-x', '38px');
+
+    envoltura.style.alignItems = 'flex-start';
+    envoltura.style.overflowX = 'hidden';
+    envoltura.style.overflowY = 'auto';
     texto.style.width = '100%';
-    envoltura.style.alignItems = 'center';
-
-    const longitud = String(texto.textContent || '').length;
-    const saltos = (String(texto.textContent || '').match(/\n/g) || []).length;
-    const base = limitar(
-      Math.min(
-        34,
-        30 - Math.max(0, longitud - 280) / 58 - saltos * .42,
-        18 + anchoDisponible / 105
-      ),
-      9,
-      34
-    );
-
-    const aplicarMetricas = fuente => {
-      const factor = limitar(fuente / 28, .55, 1.16);
-      contenido.style.setProperty('--rx-copy-size', `${fuente}px`);
-      contenido.style.setProperty(
-        '--rx-copy-leading',
-        String(limitar(1.34 + (28 - fuente) * .006, 1.34, 1.48))
-      );
-      contenido.style.setProperty('--rx-gap', `${limitar(18 * factor, 8, 21)}px`);
-      contenido.style.setProperty('--rx-title-size', `${limitar(fuente * 1.35, 24, 42)}px`);
-      contenido.style.setProperty('--rx-prompt-size', `${limitar(fuente * .54, 10, 17)}px`);
-      contenido.style.setProperty('--rx-meta-label-size', `${limitar(fuente * .36, 8, 11)}px`);
-      contenido.style.setProperty('--rx-meta-value-size', `${limitar(fuente * .5, 10, 16)}px`);
-      contenido.style.setProperty('--rx-card-pad-y', `${limitar(fuente * 1.05, 10, 34)}px`);
-      contenido.style.setProperty('--rx-card-pad-x', `${limitar(fuente * 1.35, 14, 44)}px`);
-    };
-
-    const cabe = () => {
-      const tolerancia = 1;
-      return texto.scrollHeight <= envoltura.clientHeight + tolerancia &&
-        texto.scrollWidth <= envoltura.clientWidth + tolerancia &&
-        contenido.scrollHeight <= contenido.clientHeight + tolerancia &&
-        contenido.scrollWidth <= contenido.clientWidth + tolerancia;
-    };
-
-    let minimo = 7;
-    let maximo = Math.max(minimo, base);
-    let mejor = minimo;
-
-    aplicarMetricas(minimo);
-
-    for (let intento = 0; intento < 10; intento++) {
-      const candidato = (minimo + maximo) / 2;
-      aplicarMetricas(candidato);
-
-      if (cabe()) {
-        mejor = candidato;
-        minimo = candidato;
-      } else {
-        maximo = candidato;
-      }
-    }
-
-    aplicarMetricas(mejor);
-
-    /*
-       Respaldo para textos excepcionalmente extensos: se conserva el contenido
-       completo dentro del rectangulo, sin barras ni recorte visual.
-    */
-    if (!cabe()) {
-      aplicarMetricas(7);
-      envoltura.style.alignItems = 'flex-start';
-
-      const escala = limitar(
-        Math.min(
-          envoltura.clientHeight / Math.max(1, texto.scrollHeight),
-          envoltura.clientWidth / Math.max(1, texto.scrollWidth)
-        ),
-        .05,
-        1
-      );
-
-      texto.style.transform = `scale(${escala})`;
-    }
+    texto.style.transform = 'none';
   };
 
   aplicarAjuste();
@@ -2316,14 +2834,13 @@ function ajustarReflexionCompleta() {
     requestAnimationFrame(aplicarAjuste);
   });
   setTimeout(aplicarAjuste, 180);
-  setTimeout(aplicarAjuste, 500);
 
-  if (!ajustarReflexionCompleta._escuchaResize) {
-    ajustarReflexionCompleta._escuchaResize = true;
+  if (!ajustarReflexionDesplazable._escuchaResize) {
+    ajustarReflexionDesplazable._escuchaResize = true;
 
     window.addEventListener('resize', () => {
       if (document.querySelector('#slides .rx')) {
-        ajustarReflexionCompleta();
+        ajustarReflexionDesplazable();
       }
     });
   }
@@ -2455,11 +2972,11 @@ const Slides = {
             after: ajustarKpisSlide
           });
         } else if (clave === 'reflexionPersonal') {
-          lista.push({area, sec: 'Reflexión Personal', html: rpAnteportadaHTML(area, 'Reflexión Personal')});
+          lista.push({area, sec: 'Reflexi\u00F3n Personal', html: rpAnteportadaHTML(area, 'Reflexi\u00F3n Personal')});
           const campos = RP_SECCION_PERSONAL.cols.filter(c => c.t !== 'area');
-          campos.forEach((campo, indice) => lista.push({area, sec: 'Reflexión Personal · ' + campo.l, html: reflexionSlideHTML(area, campo, indice, campos.length, 'Reflexión Personal'), after: ajustarReflexionCompleta}));
+          campos.forEach((campo, indice) => lista.push({area, sec: 'Reflexi\u00F3n Personal \u00B7 ' + campo.l, html: reflexionSlideHTML(area, campo, indice, campos.length, 'Reflexi\u00F3n Personal'), after: ajustarReflexionDesplazable}));
         } else if (clave === 'reflexion') {
-          lista.push({area, sec: 'Reflexión de Área', html: rpAnteportadaHTML(area, 'Reflexión de Área')});
+          lista.push({area, sec: 'Reflexi\u00F3n de \u00C1rea', html: rpAnteportadaHTML(area, 'Reflexi\u00F3n de \u00C1rea')});
           const campos = camposReflexionPresentacion();
 
           campos.forEach((campo, indice) => {
@@ -2467,7 +2984,7 @@ const Slides = {
               area,
               sec: `${Calc.tituloPeriodoAnalisis(titulo, clave)} \u00B7 ${campo.l}`,
               html: reflexionSlideHTML(area, campo, indice, campos.length),
-              after: ajustarReflexionCompleta
+              after: ajustarReflexionDesplazable
             });
           });
         } else {
@@ -2598,6 +3115,8 @@ const Slides = {
     ];
 
     $('#slides').innerHTML = `
+      ${tipografiaPresentacionHTML()}
+
       <div class="slide-top">
         <button
           type="button"
@@ -2723,5 +3242,8 @@ const Slides = {
     if (typeof slideActual.after === 'function') {
       slideActual.after();
     }
+
+    prepararTablasPresentacion();
+    requestAnimationFrame(prepararTablasPresentacion);
   }
 };

@@ -6,7 +6,7 @@
    ======================================================================= */
 
 function unidadFiltroActual() {
-  return (S().unidadesNegocio || []).find(
+  return unidadesEdicion().find(
     unidad => unidad.id === UI.filters.unidadId
   ) || null;
 }
@@ -29,7 +29,14 @@ const F = {
   },
 
   a(r) {
+    const autorizada = Auth.isAdmin() || (
+      r.unidadNegocioId && r.areaId
+        ? Auth.canAccess(r.unidadNegocioId, r.areaId)
+        : Auth.canArea(r.area)
+    );
+
     return (
+      autorizada &&
       this.unidad(r) &&
       (
         !UI.filters.areaId ||

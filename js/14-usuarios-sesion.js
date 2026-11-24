@@ -179,7 +179,10 @@ function renderInicio() {
       ${admin ? `<section class="home-monitor" aria-labelledby="homeMonitorTitle">
         <header class="home-monitor-head"><div><span>Monitor compacto</span><h2 id="homeMonitorTitle">Avance por unidad de negocio</h2></div><p>Captura completada por área</p></header>
         <div class="home-units">${unidadesHTML || `<div class="home-monitor-empty">${icon('layers', 18)} Las unidades y sus áreas aparecerán automáticamente al configurarlas.</div>`}</div>
-      </section>` : `<button type="button" class="home-edit-cta" data-action="nav" data-view="registro">${icon('pen', 18)}<span><b>Ir a Edición</b><small>Captura la información de tus áreas</small></span>${icon('arrowR', 18)}</button>`}
+      </section>` : `<div style="align-self:end;justify-self:start;display:flex;gap:10px;flex-wrap:wrap">
+        <button type="button" class="home-edit-cta" data-action="nav" data-view="registro">${icon('pen', 18)}<span><b>Ir a Edición</b><small>Captura la información de tus áreas</small></span>${icon('arrowR', 18)}</button>
+        <button type="button" class="home-edit-cta" data-action="nav" data-view="presentacion">${icon('chart', 18)}<span><b>Ir a Presentación</b><small>Consulta únicamente tus áreas asignadas</small></span>${icon('arrowR', 18)}</button>
+      </div>`}
 
       <footer class="home-footer"><span>Cultivamos energía… cosechamos sueños.</span><b>Frutas Chanitos</b></footer>
     </div>`;
@@ -232,7 +235,7 @@ function usuariosHTML() {
     </tbody></table></div></div>`;
 }
 function rolesHTML() {
-  const P = [['Ver pantalla de inicio', 1, 1], ['Capturar y editar la información de sus áreas', 1, 1], ['Editar la información de cualquier área', 1, 0], ['Importar Excel', 1, 'Solo sus áreas'], ['Exportar Excel y plantilla', 'Todo', 'Solo sus áreas'], ['Dashboard ejecutivo y vista por área', 1, 0], ['Modo presentación y exportar PDF', 1, 0], ['Crear usuarios y asignar roles y accesos', 1, 0], ['Configurar áreas, umbrales y objetivos', 1, 0], ['Consultar la bitácora', 1, 0]];
+  const P = [['Ver pantalla de inicio', 1, 1], ['Capturar y editar la información de sus áreas', 1, 1], ['Editar la información de cualquier área', 1, 0], ['Importar Excel', 1, 'Solo sus áreas'], ['Exportar Excel y plantilla', 'Todo', 'Solo sus áreas'], ['Dashboard ejecutivo y vista por área', 1, 'Solo sus áreas'], ['Modo presentación', 1, 'Solo sus áreas'], ['Exportar PDF', 1, 0], ['Crear usuarios y asignar roles y accesos', 1, 0], ['Configurar áreas, umbrales y objetivos', 1, 0], ['Consultar la bitácora', 1, 0]];
   const cell = v => v === 1 ? `<span class="perm ok">${icon('check', 14)}</span>` : v === 0 ? '<span class="perm no">—</span>' : `<span class="pill amarillo"><i></i>${esc(v)}</span>`;
   return `<div class="home-grid"><div class="card"><h3 style="margin-bottom:4px">Matriz de permisos</h3><p class="small muted" style="margin:0 0 14px">Qué puede hacer cada rol dentro de la plataforma.</p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="static">Permiso</th>${Object.values(CONFIG.ROLES).map(r => `<th class="static" style="text-align:center">${r.nombre}</th>`).join('')}</tr></thead><tbody>${P.map(([p, a, d]) => `<tr><td>${p}</td><td style="text-align:center">${cell(a)}</td><td style="text-align:center">${cell(d)}</td></tr>`).join('')}</tbody></table></div></div>

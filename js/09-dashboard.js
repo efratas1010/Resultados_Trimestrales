@@ -13,7 +13,7 @@ const PRES_TABS = [
 
 function renderPresentacion() {
   const f = UI.filters;
-  const unidades = Array.isArray(S().unidadesNegocio) ? S().unidadesNegocio : [];
+  const unidades = unidadesEdicion();
   const unidadActual = unidades.find(unidad => unidad.id === f.unidadId) || null;
   const areas = unidadActual ? (unidadActual.areas || []) : [];
 

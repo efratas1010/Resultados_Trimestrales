@@ -177,8 +177,14 @@ const Actions = {
   UI.presArea = null;
   renderPresentacion();
 },
-  present: () => { if (Auth.isAdmin()) Slides.open(); },
-  presentArea: () => Slides.open(UI.presArea),
+  present: () => {
+    if (canView('presentacion') && unidadFiltroActual()) Slides.open();
+  },
+  presentArea: () => {
+    if (canView('presentacion') && UI.presArea && areasFiltradas().includes(UI.presArea)) {
+      Slides.open(UI.presArea);
+    }
+  },
   slidePrev: () => Slides.go(Slides.i - 1), slideNext: () => Slides.go(Slides.i + 1), slideClose: () => Slides.close(),
   print: () => { if (Auth.isAdmin()) imprimir(); },
   goSheet: b => { if (!rpComprobarAccesoSeccion(b.dataset.sheet)) return; UI.sheet = b.dataset.sheet; UI.regQ = ''; goView('registro'); },

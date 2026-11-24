@@ -18,7 +18,7 @@ areaId: '', sheet: 'cierre', regQ: '',
 const VIEWS = {
   inicio: { t: 'Inicio', s: 'Tu punto de partida en la plataforma.', icon: 'home', roles: ['admin', 'direccion'] },
   registro: { t: 'Edici\u00F3n', s: 'Captura la informaci\u00F3n de cada \u00E1rea, hoja por hoja.', icon: 'pen', roles: ['admin', 'direccion'] },
-  presentacion: { t: 'Dashboard', s: 'Tablero ejecutivo, vistas por \u00E1rea, comparativos y modo presentaci\u00F3n.', icon: 'chart', roles: ['admin'] },
+  presentacion: { t: 'Dashboard', s: 'Tablero ejecutivo, vistas por \u00E1rea, comparativos y modo presentaci\u00F3n.', icon: 'chart', roles: ['admin', 'direccion'] },
   admin: { t: 'Administraci\u00F3n', s: 'Usuarios, roles, accesos, bit\u00E1cora y configuraci\u00F3n.', icon: 'shield', roles: ['admin'] }
 };
 /* =======================================================================
@@ -102,9 +102,7 @@ function asegurarSeleccionEdicion() {
 }
 
 function asegurarSeleccionDashboard() {
-  const unidades = Array.isArray(S().unidadesNegocio)
-    ? S().unidadesNegocio
-    : [];
+  const unidades = unidadesEdicion();
 
   if (!unidades.length) {
     UI.filters.unidadId = '';
@@ -159,7 +157,10 @@ function renderSidebar() {
   const roleName = CONFIG.ROLES[u?.rol]?.nombre || u?.rol || '';
   const menu = Object.entries(VIEWS)
     .filter(([key]) => canView(key))
-    .map(([key, view]) => `<button type="button" class="nav-item" data-action="nav" data-view="${key}" aria-current="${UI.view === key ? 'page' : 'false'}">${icon(view.icon, 18)}<span>${esc(view.t)}</span></button>`)
+    .map(([key, view]) => {
+      const label = key === 'presentacion' && u?.rol === 'direccion' ? 'Presentaci\u00F3n' : view.t;
+      return `<button type="button" class="nav-item" data-action="nav" data-view="${key}" aria-current="${UI.view === key ? 'page' : 'false'}">${icon(view.icon, 18)}<span>${esc(label)}</span></button>`;
+    })
     .join('');
 
   sidebar.hidden = false;
@@ -202,7 +203,9 @@ function renderTopbar() {
   const v = VIEWS[UI.view];
   $('#homeBtn').hidden = UI.view === 'inicio';
   $('#homeBtn').innerHTML = icon('chevL', 16) + 'Inicio';
-  $('#viewTitle').textContent = v.t;
+  $('#viewTitle').textContent = UI.view === 'presentacion' && Auth.user?.rol === 'direccion'
+    ? 'Presentaci\u00F3n'
+    : v.t;
   const baseSub = UI.view === 'registro' && !Auth.isAdmin() ? 'Captura la informaci\u00F3n de tu \u00E1rea, hoja por hoja.' : v.s;
   $('#viewSub').textContent = UI.view === 'registro'
     ? `${baseSub} Periodo de ${SHEET(UI.sheet)?.corto || 'la secci\u00F3n'}: ${Calc.textoPeriodoAnalisis(UI.sheet, true)}.`
@@ -210,10 +213,18 @@ function renderTopbar() {
       ? `${baseSub} Cada secci\u00F3n usa el periodo asignado por el Administrador.`
       : baseSub;
   if (!['registro', 'presentacion'].includes(UI.view)) { $('#topActions').innerHTML = ''; return; }
-  if (!Auth.isAdmin()) { $('#topActions').innerHTML = `
-    <button type="button" class="btn" data-action="import" data-tip="Importa un .xlsx; solo se cargan tus \u00E1reas">${icon('upload', 16)}<span class="lbl">Importar Excel</span></button>
-    <button type="button" class="btn" data-action="export" data-tip="Exporta la informaci\u00F3n de tus \u00E1reas para enviarla a Planeaci\u00F3n">${icon('download', 16)}<span class="lbl">Exportar mi informaci\u00F3n</span></button>
-    <button type="button" class="btn" data-action="template">${icon('file', 16)}<span class="lbl">Plantilla</span></button>`; return; }
+  if (!Auth.isAdmin()) {
+    if (UI.view === 'presentacion') {
+      $('#topActions').innerHTML = `
+        <button type="button" class="btn primary" data-action="present">${icon('play', 16)}<span class="lbl">Presentar mis \u00E1reas</span></button>`;
+      return;
+    }
+    $('#topActions').innerHTML = `
+      <button type="button" class="btn" data-action="import" data-tip="Importa un .xlsx; solo se cargan tus \u00E1reas">${icon('upload', 16)}<span class="lbl">Importar Excel</span></button>
+      <button type="button" class="btn" data-action="export" data-tip="Exporta la informaci\u00F3n de tus \u00E1reas para enviarla a Planeaci\u00F3n">${icon('download', 16)}<span class="lbl">Exportar mi informaci\u00F3n</span></button>
+      <button type="button" class="btn" data-action="template">${icon('file', 16)}<span class="lbl">Plantilla</span></button>`;
+    return;
+  }
   $('#topActions').innerHTML = `
     <button type="button" class="btn" data-action="import" data-tip="Importa un .xlsx con las mismas hojas">${icon('upload', 16)}<span class="lbl">Importar Excel</span></button>
     <button type="button" class="btn" data-action="export">${icon('download', 16)}<span class="lbl">Exportar Excel</span></button>

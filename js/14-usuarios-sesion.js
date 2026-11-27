@@ -139,7 +139,17 @@ function renderInicio() {
 
   const unidadesHTML = unidades.map((unidad, unidadIndex) => {
     const areas = admin ? (unidad.areas || []) : Auth.areasUnidad(unidad.id);
-    const avances = areas.map(area => Math.max(0, Math.min(100, Math.round(Calc.avanceArea(area.nombre, unidad.id, area.id)))));
+   const hojasMonitor = [...SHEETS, RP_SECCION_PERSONAL]
+  .filter(hoja => hoja.key !== 'okrs');
+
+const avances = areas.map(area => {
+  const total = hojasMonitor.reduce(
+    (suma, hoja) => suma + Calc.avanceHoja(area.nombre, hoja.key, unidad.id, area.id),
+    0
+  );
+  const porcentaje = (total / hojasMonitor.length) * 100;
+  return Math.max(0, Math.min(100, Math.round(porcentaje)));
+}); 
     const promedio = avances.length ? Math.round(avg(avances)) : 0;
     return `<article class="home-unit ${unidadIndex % 2 ? 'producer' : ''}" style="--unit-delay:${unidadIndex * 70}ms">
       <header class="home-unit-head">
